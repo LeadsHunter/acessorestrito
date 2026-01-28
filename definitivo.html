@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leads Hunter | God Mode v6.2.1 (Register Fix)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- FIREBASE COMPAT -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root { 
+            --gold: #D4AF37; 
+            --gold-glow: rgba(212, 175, 55, 0.6);
+            --bg-deep: #050505; 
+            --panel-bg: rgba(10, 10, 10, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --neon-blue: #00f3ff;
+        }
+
+        body { 
+            background-color: var(--bg-deep); 
+            color: #e4e4e7; 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden; 
+            height: 100vh;
+            background-image: radial-gradient(circle at 50% -20%, #1a1508, #000000);
+            background-attachment: fixed;
+        }
+
+        .font-display { font-family: 'Outfit', sans-serif; }
+        .font-code { font-family: 'JetBrains Mono', monospace; }
+
+        /* --- BACKGROUNDS --- */
+        #particles-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        #wormhole-canvas {
+            position: fixed; inset: 0; z-index: 50; 
+            display: none; pointer-events: none;
+            background: black; opacity: 0; transition: opacity 0.8s ease-in-out;
+        }
+        #wormhole-canvas.visible { opacity: 1; }
+
+        /* --- UI COMPONENTS --- */
+        .glass-panel { 
+            background: var(--panel-bg); 
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            backdrop-filter: blur(20px); 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            border-radius: 16px;
+        }
+
+        .god-input { 
+            background: rgba(255, 255, 255, 0.15); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            color: #fff; 
+            transition: all 0.3s;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .god-input:disabled {
+            background: rgba(255, 255, 255, 0.05);
+            color: #888;
+            cursor: not-allowed;
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+        .god-input::placeholder { color: rgba(255, 255, 255, 0.6); }
+        .god-input:focus { 
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--gold); 
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1); 
+            outline: none;
+        }
+        select.god-input option {
+            background-color: #1a1a1a;
+            color: white;
+            padding: 10px;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, #D4AF37 0%, #AA8A28 100%);
+            color: #000; font-weight: 700; text-transform: uppercase;
+            transition: all 0.3s; border-radius: 8px;
+        }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3); }
+        
+        .btn-action.stop-mode {
+            background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+            color: white;
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        /* --- SCREENS --- */
+        .screen {
+            position: absolute; inset: 0;
+            display: none; flex-direction: column; 
+            align-items: center; justify-content: center;
+            z-index: 10; opacity: 0; pointer-events: none;
+            overflow-y: auto;
+            transition: opacity 0.3s ease;
+        }
+        .screen.active { display: flex; opacity: 1; pointer-events: auto; }
+
+        /* --- LOADER --- */
+        .loader-bar-container { width: 300px; height: 4px; background: #111; border-radius: 2px; overflow: hidden; margin-top: 20px; }
+        .loader-bar { height: 100%; background: var(--gold); width: 0%; box-shadow: 0 0 10px var(--gold); transition: width 0.1s linear; }
+
+        /* --- HUB CARDS --- */
+        .hub-card {
+            width: 260px; height: 320px; 
+            background: rgba(16, 16, 16, 0.95); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px; cursor: pointer; transition: all 0.3s ease;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; overflow: hidden; opacity: 0; transform: translateY(20px);
+        }
+        .hub-card.animate-in { animation: slideUp 0.5s forwards; }
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+        .hub-card:hover { transform: translateY(-10px); border-color: var(--gold); box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
+
+        /* --- CHAT --- */
+        .chat-bubble {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.2);
+            padding: 15px 25px; border-radius: 12px; border-bottom-left-radius: 2px;
+            margin-bottom: 15px; max-width: 600px; opacity: 0; transform: translateY(10px);
+        }
+        .chat-bubble.visible { animation: popIn 0.4s forwards; }
+        @keyframes popIn { to { opacity: 1; transform: translateY(0); } }
+
+        .tool-tab { display: none; height: 100%; width: 100%; }
+        .tool-tab.active { display: flex; flex-direction: column; }
+        
+        .nav-back { 
+            position: absolute; top: 20px; left: 20px; color: #fff; cursor: pointer; z-index: 50; 
+            display: flex; gap: 8px; align-items: center; opacity: 0.7; transition: 0.3s;
+        }
+        .nav-back:hover { opacity: 1; color: var(--gold); }
+
+        /* Stats Box */
+        .stats-box { background: rgba(0,0,0,0.4); border: 1px solid #333; border-radius: 8px; padding: 10px; text-align: center; }
+        .stats-val { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: bold; }
+        .stats-label { font-size: 0.6rem; text-transform: uppercase; color: #666; letter-spacing: 1px; }
+
+        .z-supreme { z-index: 9999 !important; }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="particles-canvas"></canvas>
+    <canvas id="wormhole-canvas"></canvas> 
+
+    <div id="screens">
+        
+        <!-- 1. BOOT SCREEN -->
+        <div id="boot-screen" class="screen active bg-black z-50">
+            <div class="text-center">
+                <h1 class="font-display text-5xl text-[#D4AF37] tracking-[0.2em] font-bold animate-pulse" style="text-shadow: 0 0 20px rgba(212,175,55,0.4);">LEADS HUNTER</h1>
+                <p class="font-code text-xs text-gray-500 mt-4 tracking-widest">SYSTEM INITIALIZATION...</p>
+                <div class="loader-bar-container mx-auto"><div id="boot-bar" class="loader-bar"></div></div>
+                <div id="boot-status" class="font-code text-[10px] text-green-500 mt-2 h-4">Carregando...</div>
+            </div>
+        </div>
+
+        <!-- 2. AUTH SCREEN -->
+        <div id="auth-screen" class="screen z-40">
+            <div class="god-panel w-full max-w-[400px] p-8 md:p-10 flex flex-col items-center relative z-10 transition-all duration-500 hover:shadow-[0_0_40px_rgba(212,175,55,0.1)]">
+                
+                <!-- CADEADO ADMIN -->
+                <div onclick="window.AuthSystem.promptAdmin()" class="absolute top-4 left-4 z-50 cursor-pointer opacity-30 hover:opacity-100 transition-opacity duration-300 p-2 border border-white/20 rounded-full hover:bg-white/10" title="Acesso Administrativo">
+                    <i data-lucide="lock" class="w-4 h-4 text-white"></i>
+                </div>
+
+                <div class="mb-8 text-center relative">
+                    <h2 class="font-display text-3xl text-white font-bold tracking-wider mb-2">ACESSO RESTRITO</h2>
+                    <div class="flex items-center justify-center gap-2 opacity-50">
+                        <div class="h-[1px] w-8 bg-gradient-to-r from-transparent to-[#D4AF37]"></div>
+                        <span class="font-code text-[10px] uppercase tracking-[0.3em] text-[#D4AF37]">God Mode v6.2.1</span>
+                        <div class="h-[1px] w-8 bg-gradient-to-l from-transparent to-[#D4AF37]"></div>
+                    </div>
+                </div>
+
+                <div id="login-form" class="w-full space-y-4">
+                    <div>
+                        <label class="text-[11px] text-gray-400 uppercase font-bold ml-1 mb-1 block">E-mail</label>
+                        <input type="email" id="loginEmail" class="god-input w-full p-3 text-sm" placeholder="seu@email.com">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-gray-400 uppercase font-bold ml-1 mb-1 block">Senha</label>
+                        <input type="password" id="loginPass" class="god-input w-full p-3 text-sm" placeholder="••••••••">
+                    </div>
+                    
+                    <button id="btn-login-action" onclick="window.AuthSystem.login()" class="btn-action w-full p-3 mt-2 text-sm tracking-widest font-bold shadow-lg shadow-[#D4AF37]/20">ENTRAR</button>
+                    
+                    <div class="text-center mt-6 pt-4 border-t border-white/5 w-full">
+                        <button onclick="window.AuthSystem.toggleForms()" class="text-sm text-[#D4AF37] hover:text-white transition font-bold uppercase tracking-wider text-[11px]">Criar Conta Agora</button>
+                    </div>
+                </div>
+
+                <div id="register-form" class="hidden w-full space-y-4">
+                    <div><label class="text-[11px] text-gray-400 uppercase font-bold ml-1 mb-1 block">Nome</label><input type="text" id="regName" class="god-input w-full p-3 text-sm"></div>
+                    <div><label class="text-[11px] text-gray-400 uppercase font-bold ml-1 mb-1 block">E-mail</label><input type="email" id="regEmail" class="god-input w-full p-3 text-sm"></div>
+                    <div><label class="text-[11px] text-gray-400 uppercase font-bold ml-1 mb-1 block">Senha</label><input type="password" id="regPass" class="god-input w-full p-3 text-sm"></div>
+                    <button onclick="window.AuthSystem.register()" class="btn-action w-full p-3 text-sm font-bold">CADASTRAR</button>
+                    <div class="text-center mt-4 pt-4 border-t border-white/5"><button onclick="window.AuthSystem.toggleForms()" class="text-xs text-gray-500 hover:text-white transition">Voltar</button></div>
+                </div>
+
+                <div id="renewal-block" class="hidden w-full text-center py-6">
+                    <div class="text-red-500 font-display font-bold uppercase tracking-widest text-xl">ACESSO SUSPENSO</div>
+                    <p class="text-xs text-gray-400 leading-relaxed px-4 mb-4 mt-2">Sua licença expirou. Renove para continuar.</p>
+                    <a href="https://go.ironpayapp.com.br/abdcioak1d" target="_blank" class="btn-action block w-full p-3 bg-red-600 !bg-none !bg-red-600 text-white hover:bg-red-500 shadow-lg">RENOVAR ACESSO</a>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-white/5 text-center flex flex-col items-center justify-center gap-3">
+                    <p class="font-code text-[9px] text-gray-600 uppercase tracking-[0.2em]">Pensado e desenvolvido por <span class="text-gray-400 font-bold">Samuel Vitor</span></p>
+                    <a href="https://www.instagram.com/samuel.vitorr_/" target="_blank" class="opacity-50 hover:opacity-100 hover:scale-110 transition-all duration-300"><i data-lucide="instagram" class="w-5 h-5 text-[#D4AF37]"></i></a>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 3. CHAT INTRO -->
+        <div id="intro-chat" class="screen z-30 bg-black/90">
+            <div id="chat-container" class="flex flex-col items-center justify-center w-full max-w-2xl px-6"></div>
+            <div id="chat-actions" class="mt-8 opacity-0 transition duration-500">
+                <button onclick="window.Navigation.startWormhole()" class="btn-action px-8 py-4 rounded-full text-lg shadow-[0_0_30px_rgba(212,175,55,0.3)] animate-pulse flex items-center gap-3">
+                    ATIVAR SISTEMA <i data-lucide="zap" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. HUB -->
+        <div id="hub-screen" class="screen z-20">
+            <h2 class="font-display text-4xl text-white mb-10 font-bold tracking-widest text-center" style="text-shadow: 0 0 20px rgba(212,175,55,0.2);">NÚCLEO DE OPERAÇÕES</h2>
+            <div class="flex flex-wrap justify-center gap-6 px-4" id="hub-grid">
+                
+                <div class="hub-card border-l-2 border-l-[#D4AF37]" onclick="window.Navigation.enterPortal('spider')">
+                    <i data-lucide="globe" class="w-12 h-12 text-[#D4AF37] mb-4"></i>
+                    <h3 class="text-lg font-bold uppercase text-white">Leads Hunter</h3>
+                    <p class="text-[10px] text-gray-400 text-center px-4 mt-2">Busca inteligente de grupos.</p>
+                </div>
+
+                <div class="hub-card border-l-2 border-l-purple-500" onclick="window.Navigation.enterPortal('extractor')">
+                    <i data-lucide="scan-line" class="w-12 h-12 text-purple-500 mb-4"></i>
+                    <h3 class="text-lg font-bold uppercase text-white">Extrator & Remarketing</h3>
+                    <p class="text-[10px] text-gray-400 text-center px-4 mt-2">Captura e Recuperação.</p>
+                </div>
+
+                <div class="hub-card border-l-2 border-l-green-500" onclick="window.Navigation.enterPortal('sender')">
+                    <i data-lucide="send" class="w-12 h-12 text-green-500 mb-4"></i>
+                    <h3 class="text-lg font-bold uppercase text-white">Disparador</h3>
+                    <p class="text-[10px] text-gray-400 text-center px-4 mt-2">Envio massivo por funil.</p>
+                </div>
+
+                <div class="hub-card border-l-2 border-l-blue-500" onclick="window.Navigation.enterPortal('config')">
+                    <i data-lucide="cpu" class="w-12 h-12 text-blue-500 mb-4 animate-spin-slow"></i>
+                    <h3 class="text-lg font-bold uppercase text-white">Neural Config</h3>
+                    <p class="text-[10px] text-gray-400 text-center px-4 mt-2">Configuração da API.</p>
+                </div>
+
+            </div>
+            <button onclick="window.AuthSystem.logout()" class="mt-12 text-xs text-red-500 hover:text-white border border-red-900/30 hover:bg-red-600 px-6 py-2 rounded transition uppercase tracking-widest flex items-center gap-2">
+                <i data-lucide="log-out" class="w-3 h-3"></i> Sair da Conta
+            </button>
+        </div>
+
+        <!-- 5. TOOLS CONTAINER -->
+        <div id="tool-container" class="screen z-20 bg-[#050505] pt-10">
+            <div onclick="window.Navigation.exitPortal()" class="nav-back group">
+                <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+                <span>VOLTAR AO HUB</span>
+            </div>
+
+            <!-- TAB: CONFIG -->
+            <div id="tab-config" class="tool-tab max-w-4xl mx-auto p-4 justify-center">
+                <div class="glass-panel p-8 rounded-xl border-l-4 border-l-blue-600">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3"><i data-lucide="cpu" class="text-blue-500"></i> Configuração Neural</h2>
+                    <div class="space-y-4">
+                        <div><label class="text-[10px] uppercase text-blue-400 font-bold mb-1 block">URL da API</label><input type="text" id="conf-url" class="god-input w-full p-3 text-sm font-mono" placeholder="https://api.seudominio.com"></div>
+                        <div><label class="text-[10px] uppercase text-blue-400 font-bold mb-1 block">API Key</label><input type="password" id="conf-key" class="god-input w-full p-3 text-sm font-mono" placeholder="sk_..."></div>
+                        
+                        <div class="relative">
+                            <label class="text-[10px] uppercase text-blue-400 font-bold mb-1 block">Instância (Neural Lock)</label>
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="conf-inst" class="god-input w-full p-3 text-sm font-mono" placeholder="NomeDaInstancia">
+                                <i data-lucide="lock" id="lock-icon" class="hidden text-red-500 w-5 h-5 animate-pulse" title="Travado pelo Sistema"></i>
+                            </div>
+                            <p class="text-[9px] text-gray-500 mt-1">*Após salvar, o nome da instância será vinculado à sua conta e travado.</p>
+                        </div>
+
+                        <button onclick="window.ConfigSystem.save()" class="btn-action w-full py-3 text-sm mt-2 shadow-lg shadow-blue-900/20">SALVAR E TRAVAR</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: SPIDER -->
+            <div id="tab-spider" class="tool-tab max-w-6xl mx-auto p-4 pt-10">
+                <div class="glass-panel p-8 rounded-xl h-full flex flex-col border-l-4 border-l-[#D4AF37]">
+                    <h2 class="text-2xl font-bold text-[#D4AF37] mb-2">Hunter Search - GruposWhats</h2>
+                    <p class="text-xs text-gray-400 mb-6 font-code">Sistema de busca direta para máxima eficiência.</p>
+                    <div class="flex gap-4 mb-6">
+                        <input type="text" id="searchTerm" placeholder="Digite o Nicho (Ex: Marketing Digital)..." class="god-input flex-1 p-3 text-lg !bg-white/10 !text-white placeholder-gray-400">
+                        <button onclick="window.SpiderTool.search()" class="btn-action px-8 flex items-center gap-2"><i data-lucide="search" class="w-4 h-4"></i> BUSCAR</button>
+                    </div>
+                    <div id="spider-results" class="flex-1 bg-black/40 rounded p-4 overflow-y-auto space-y-2 border border-white/10 text-center text-gray-500 font-code text-xs">
+                        Aguardando comando. Os resultados abrirão em nova aba para extração.
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: EXTRACTOR -->
+            <div id="tab-extractor" class="tool-tab max-w-6xl mx-auto p-4 pt-10">
+                <div class="glass-panel p-8 rounded-xl border-l-4 border-l-purple-600 h-full flex flex-col">
+                    <h2 class="text-2xl font-bold text-white mb-6">Extração & Remarketing</h2>
+                    <div class="flex-1 flex flex-col md:flex-row gap-8">
+                        <div class="flex-1 space-y-6">
+                            <div class="space-y-4 border-b border-white/10 pb-6">
+                                <h3 class="text-purple-400 text-[10px] uppercase font-bold">Extração de Grupos (WhatsApp Web)</h3>
+                                <button onclick="window.ExtractorTool.loadGroups()" class="w-full bg-gray-800 text-gray-300 py-2 rounded text-xs hover:bg-gray-700 border border-gray-700">Carregar Grupos da Instância</button>
+                                <select id="group-list" class="god-input w-full p-3 text-sm"><option value="">Aguardando...</option></select>
+                                <button onclick="window.ExtractorTool.extract()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded text-sm uppercase shadow-lg shadow-purple-900/30">EXTRAIR CONTATOS</button>
+                            </div>
+                            <div class="space-y-4">
+                                <h3 class="text-[#D4AF37] text-[10px] uppercase font-bold flex items-center gap-2"><i data-lucide="rotate-ccw" class="w-3 h-3"></i> Remarketing por Funil (Histórico)</h3>
+                                <p class="text-[10px] text-gray-500">Recupere contatos que já receberam disparos de um funil específico.</p>
+                                <select id="remarketing-funnel-list" class="god-input w-full p-3 text-sm !bg-white/5" onchange="window.ExtractorTool.updateRemarketingCount()"><!-- Populated via DataCore --><option value="">Selecione um Funil...</option></select>
+                                <div class="flex justify-between items-center bg-black/30 p-3 rounded border border-white/5"><span class="text-xs text-gray-400">Contatos no Histórico:</span><span id="remarketing-count" class="text-[#D4AF37] font-bold font-mono">0</span></div>
+                                <button onclick="window.ExtractorTool.sendToSender()" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-3 rounded text-sm uppercase shadow-lg">RECUPERAR PARA LISTA</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 space-y-4 md:border-l md:border-white/10 md:pl-8">
+                            <h3 class="text-blue-400 text-[10px] uppercase font-bold border-b border-blue-500/20 pb-2">Métricas Gerais</h3>
+                            <div class="bg-blue-500/5 p-4 rounded border border-blue-500/10"><p class="text-[10px] text-gray-400 uppercase">Leads na Sessão</p><p class="text-4xl font-mono font-bold text-white" id="base-count">0</p></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: SENDER -->
+            <div id="tab-sender" class="tool-tab max-w-7xl mx-auto p-4 pt-5">
+                <div class="flex flex-col lg:flex-row gap-6 h-full">
+                    <div class="flex-[2] glass-panel rounded-xl flex flex-col p-6 border-l-4 border-l-green-600">
+                        <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold text-white">Scripts</h2><button onclick="window.SenderTool.addScript()" class="text-xs bg-green-500/10 text-green-400 px-3 py-1 rounded border border-green-500/30 hover:bg-green-500/20">+ Variação</button></div>
+                        <div id="scripts-container" class="flex-1 overflow-y-auto space-y-3 pr-2 custom-scroll">
+                            <div class="script-block relative"><span class="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Variação 1 (Principal)</span><textarea id="script-area" class="god-input w-full h-28 p-3 text-sm resize-none leading-relaxed" placeholder="Olá {nome}..."></textarea></div>
+                        </div>
+                    </div>
+                    <div class="flex-1 flex flex-col gap-4">
+                        <div class="glass-panel p-4 rounded-xl border border-white/5">
+                            <div class="flex justify-between items-center mb-2"><label class="text-[10px] text-[#D4AF37] uppercase font-bold block">Funil / Produto</label><button onclick="window.SenderTool.promptNewCategory()" class="text-[9px] text-blue-400 hover:text-white underline font-bold cursor-pointer">[+ Nova Categoria]</button></div>
+                            <select id="sender-category" onchange="window.SenderTool.updateStats()" class="god-input w-full p-3 text-sm bg-[#0a0a0a] text-white border-[#D4AF37]/30"><!-- Populated via JS --></select>
+                        </div>
+                        <div class="glass-panel p-4 rounded-xl grid grid-cols-2 gap-2">
+                            <div class="stats-box"><div class="stats-val text-yellow-500" id="stat-queue">0</div><div class="stats-label">Fila</div></div>
+                            <div class="stats-box"><div class="stats-val text-green-500" id="stat-sent-session">0</div><div class="stats-label">Sessão</div></div>
+                            <div class="stats-box col-span-2 bg-green-500/5 border-green-500/10"><div class="stats-val text-white" id="stat-sent-total">0</div><div class="stats-label text-green-400/70">Total Histórico</div></div>
+                        </div>
+                        <div class="glass-panel p-4 rounded-xl flex-1 flex flex-col">
+                            <label class="text-[10px] text-gray-500 uppercase font-bold mb-1">Lista de Disparo</label>
+                            <textarea id="target-list" oninput="window.SenderTool.updateStats()" class="flex-1 god-input w-full p-2 rounded text-[10px] font-mono resize-none mb-3" placeholder="551199..."></textarea>
+                            <div class="flex gap-2">
+                                <div class="flex gap-1 w-1/3"><input type="number" id="delay-min" value="30" class="god-input w-full text-center text-xs p-2" title="Min"><input type="number" id="delay-max" value="60" class="god-input w-full text-center text-xs p-2" title="Max"></div>
+                                <button onclick="window.SenderTool.start()" class="btn-action flex-1 rounded text-xs shadow-lg shadow-green-900/20 flex items-center justify-center gap-2"><i data-lucide="play" class="w-3 h-3 fill-current"></i> INICIAR</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ADMIN MODAL -->
+    <div id="admin-terminal" style="display:none;" class="fixed inset-0 bg-black/95 z-[10000] p-10 font-code text-green-500 backdrop-blur-md">
+        <div class="max-w-5xl mx-auto border border-green-500/50 h-full flex flex-col p-6 rounded-xl shadow-[0_0_50px_rgba(0,255,0,0.1)]">
+            <div class="flex justify-between border-b border-green-500/50 pb-4 mb-4">
+                <span class="text-xl font-bold animate-pulse">ROOT ACCESS // ADMIN</span>
+                <span onclick="document.getElementById('admin-terminal').style.display='none'" class="cursor-pointer hover:text-white font-bold">[ CLOSE X ]</span>
+            </div>
+            <div id="admin-content" class="overflow-y-auto custom-scroll pr-2"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA CORE ---
+        const DataCore = {
+            getCategories: () => {
+                const stored = localStorage.getItem('lh_categories');
+                if(stored) return JSON.parse(stored);
+                return ["Secaps Black", "Secaps Chá", "Long Beauty", "Creatina Gummy", "Outros"];
+            },
+            addCategory: (name) => {
+                const cats = DataCore.getCategories();
+                if(!cats.includes(name)) {
+                    cats.push(name);
+                    localStorage.setItem('lh_categories', JSON.stringify(cats));
+                    DataCore.refreshUI();
+                }
+            },
+            logSent: (number, category) => {
+                let logs = JSON.parse(localStorage.getItem('lh_sent_logs') || '[]');
+                if(!logs.some(l => l.n === number && l.c === category)) {
+                    logs.push({ n: number, c: category, d: new Date().toISOString() });
+                    localStorage.setItem('lh_sent_logs', JSON.stringify(logs));
+                }
+            },
+            getNumbersByCategory: (category) => {
+                const logs = JSON.parse(localStorage.getItem('lh_sent_logs') || '[]');
+                return logs.filter(l => l.c === category).map(l => l.n);
+            },
+            refreshUI: () => {
+                const cats = DataCore.getCategories();
+                const senderSel = document.getElementById('sender-category');
+                const remSel = document.getElementById('remarketing-funnel-list');
+                const currentSender = senderSel.value;
+                
+                senderSel.innerHTML = '';
+                remSel.innerHTML = '<option value="">Selecione um Funil...</option>';
+
+                cats.forEach(c => {
+                    const opt1 = document.createElement('option');
+                    opt1.value = c; opt1.innerText = c;
+                    senderSel.appendChild(opt1);
+                    const opt2 = document.createElement('option');
+                    opt2.value = c; opt2.innerText = c;
+                    remSel.appendChild(opt2);
+                });
+
+                if(currentSender && cats.includes(currentSender)) senderSel.value = currentSender;
+            }
+        };
+
+        // --- SPIDER TOOL ---
+        window.SpiderTool = { 
+            search: async () => {
+                const term = document.getElementById('searchTerm').value;
+                const resultsContainer = document.getElementById('spider-results');
+                if(!term) return alert("Digite um nicho.");
+                resultsContainer.innerHTML = '<div class="animate-pulse text-[#D4AF37] mt-4">Redirecionando...</div>';
+                const formattedTerm = term.trim().replace(/\s+/g, '+');
+                await window.Utils.wait(1000); 
+                window.open(`https://gruposwhats.app/search?q=${formattedTerm}`, '_blank');
+                resultsContainer.innerHTML = `<div class="text-green-500 mt-4">Busca aberta em nova aba!</div>`;
+            }
+        };
+
+        window.ExtractorTool = {
+            cachedGroups: [],
+            loadGroups: async () => {
+                // TENTA CARREGAR DO PERFIL DO USUÁRIO PRIMEIRO (SE LOGADO E TRAVADO)
+                let url, key, instance;
+                if(window.AuthSystem.currentUser && window.AuthSystem.currentUser.instanceLocked) {
+                    url = window.AuthSystem.currentUser.evo_url;
+                    key = window.AuthSystem.currentUser.evo_key;
+                    instance = window.AuthSystem.currentUser.instanceName;
+                } else {
+                    url = localStorage.getItem('evo_url');
+                    key = localStorage.getItem('evo_key');
+                    instance = localStorage.getItem('evo_inst');
+                }
+
+                const select = document.getElementById('group-list');
+                if (!url || !key || !instance) return alert("Configure a API primeiro!");
+                select.innerHTML = '<option>Buscando...</option>';
+                
+                try {
+                    const cleanUrl = url.trim().replace(/\/$/, '').split('/message')[0]; 
+                    const res = await fetch(`${cleanUrl}/group/fetchAllGroups/${instance}?getParticipants=true`, { method: 'GET', headers: { 'apikey': key } });
+                    if(!res.ok) throw new Error(res.status);
+                    const data = await res.json();
+                    const groups = Array.isArray(data) ? data : (data.data || []);
+                    window.ExtractorTool.cachedGroups = groups.filter(g => g.participants?.length > 0);
+                    
+                    if(window.ExtractorTool.cachedGroups.length === 0) { select.innerHTML = '<option value="">Sem grupos.</option>'; return; }
+                    
+                    select.innerHTML = '<option value="">Selecione...</option>';
+                    window.ExtractorTool.cachedGroups.forEach((g, i) => select.innerHTML += `<option value="${i}">${g.subject} (${g.participants.length})</option>`);
+                    alert(`${window.ExtractorTool.cachedGroups.length} Grupos carregados.`);
+                } catch (e) { select.innerHTML = '<option>Erro</option>'; alert("Erro API: " + e.message); }
+            },
+            extract: () => {
+                const index = document.getElementById('group-list').value;
+                if(index === "") return alert("Selecione um grupo.");
+                const group = window.ExtractorTool.cachedGroups[index];
+                if(!group) return;
+                
+                let count = 0, newNumbers = [];
+                group.participants.forEach(p => {
+                    let rawID = p.phoneNumber || p.id || "";
+                    if (typeof rawID === 'object' && rawID.user) rawID = rawID.user;
+                    if (typeof rawID !== 'string') rawID = String(rawID);
+                    let num = rawID.split('@')[0].split(':')[0];
+                    if(num.startsWith('55') && !num.startsWith('7') && num.length >= 12 && num.length <= 13) { newNumbers.push(num); count++; }
+                });
+
+                if(count === 0) return alert("Nenhum número válido.");
+                const ta = document.getElementById('target-list');
+                ta.value = (ta.value.trim() ? ta.value.trim() + "\n" : "") + newNumbers.join("\n");
+                window.SenderTool.updateStats();
+                if(confirm(`${count} extraídos! Ir para Disparador?`)) window.Navigation.enterPortal('sender');
+            },
+            updateRemarketingCount: () => {
+                const cat = document.getElementById('remarketing-funnel-list').value;
+                document.getElementById('remarketing-count').innerText = cat ? DataCore.getNumbersByCategory(cat).length : "0";
+            },
+            sendToSender: () => {
+                const cat = document.getElementById('remarketing-funnel-list').value;
+                if(!cat) return alert("Selecione.");
+                const nums = DataCore.getNumbersByCategory(cat);
+                if(nums.length === 0) return alert("Vazio.");
+                window.Navigation.enterPortal('sender');
+                const ta = document.getElementById('target-list');
+                if(confirm("Substituir lista?")) ta.value = nums.join('\n');
+                else ta.value += (ta.value ? '\n' : '') + nums.join('\n');
+                window.SenderTool.updateStats();
+            }
+        };
+
+        window.SenderTool = {
+            sessionCount: 0, sending: false,
+            addScript: () => {
+                const div = document.createElement('div');
+                div.className = 'script-block relative mt-4';
+                div.innerHTML = `<span class="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Variação Adicional</span>
+                                <textarea class="god-input w-full h-28 p-3 text-sm resize-none leading-relaxed" placeholder="Variação..."></textarea>
+                                <button onclick="this.parentElement.remove()" class="absolute top-0 right-0 text-red-500 hover:text-red-400 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
+                document.getElementById('scripts-container').appendChild(div);
+                lucide.createIcons(); 
+            },
+            saveStat: (category, count) => {
+                const stats = JSON.parse(localStorage.getItem('sender_stats') || '{}');
+                if(!stats[category]) stats[category] = 0;
+                stats[category] += count;
+                localStorage.setItem('sender_stats', JSON.stringify(stats));
+            },
+            getStats: () => JSON.parse(localStorage.getItem('sender_stats') || '{}'),
+            promptNewCategory: () => { const n = prompt("Nome:"); if(n) DataCore.addCategory(n.trim()); },
+            updateStats: () => {
+                const list = document.getElementById('target-list').value;
+                const lines = list.split('\n').filter(l => l.trim().length > 5).length;
+                const category = document.getElementById('sender-category').value;
+                const stats = window.SenderTool.getStats();
+                document.getElementById('stat-queue').innerText = lines;
+                document.getElementById('stat-sent-session').innerText = window.SenderTool.sessionCount;
+                document.getElementById('stat-sent-total').innerText = stats[category] || 0;
+            },
+            start: async () => {
+                if(window.SenderTool.sending) { window.SenderTool.sending = false; return; }
+                
+                const listElem = document.getElementById('target-list'), cat = document.getElementById('sender-category').value;
+                
+                // Script Collection
+                const mainScript = document.getElementById('script-area').value;
+                const extraScripts = Array.from(document.querySelectorAll('#scripts-container textarea'))
+                                          .filter(el => el.id !== 'script-area') 
+                                          .map(t => t.value);
+                const allScripts = [mainScript, ...extraScripts].filter(s => s && s.trim().length > 0);
+
+                // LOAD CONFIG FROM USER PROFILE IF LOCKED
+                let url, key, inst;
+                if(window.AuthSystem.currentUser && window.AuthSystem.currentUser.instanceLocked) {
+                    url = window.AuthSystem.currentUser.evo_url;
+                    key = window.AuthSystem.currentUser.evo_key;
+                    inst = window.AuthSystem.currentUser.instanceName;
+                } else {
+                    url = localStorage.getItem('evo_url');
+                    key = localStorage.getItem('evo_key');
+                    inst = localStorage.getItem('evo_inst');
+                }
+
+                let lines = listElem.value.split('\n').filter(l => l.trim().length > 5);
+
+                if(!lines.length) return alert("Lista vazia.");
+                if(!url) return alert("Config API necessária.");
+                if(allScripts.length === 0) return alert("Script vazio.");
+
+                const btn = document.querySelector('#tab-sender .btn-action[onclick*="start"]');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = 'PARAR ENVIO'; btn.classList.add('stop-mode');
+                window.SenderTool.sending = true;
+                
+                const cleanUrl = url.trim().replace(/\/$/, '').split('/message')[0]; 
+                const minDelay = (parseInt(document.getElementById('delay-min').value) || 10) * 1000;
+                const maxDelay = (parseInt(document.getElementById('delay-max').value) || 20) * 1000;
+
+                try {
+                    while(lines.length > 0 && window.SenderTool.sending) {
+                        const raw = lines[0], num = raw.split(';')[0].replace(/\D/g, '');
+                        if(num.length >= 10) {
+                            let name = "Cliente";
+                            if(raw.includes(';')) name = raw.split(';')[1];
+                            const selectedTemplate = allScripts[Math.floor(Math.random() * allScripts.length)];
+                            const finalMsg = selectedTemplate.replace(/{nome}/gi, name).replace(/{name}/gi, name);
+
+                            try {
+                                await fetch(`${cleanUrl}/message/sendText/${inst}`, {
+                                    method: 'POST', headers: {'apikey':key, 'Content-Type':'application/json'},
+                                    body: JSON.stringify({ number: num, text: finalMsg, linkPreview: true })
+                                });
+                                DataCore.logSent(num, cat);
+                            } catch(e) { console.log(e); }
+                        }
+                        lines.shift(); listElem.value = lines.join('\n');
+                        window.SenderTool.sessionCount++;
+                        window.SenderTool.saveStat(cat, 1);
+                        window.SenderTool.updateStats();
+                        if(lines.length > 0 && window.SenderTool.sending) await window.Utils.wait(Math.floor(Math.random() * (maxDelay - minDelay + 1) + minDelay));
+                    }
+                } finally {
+                    window.SenderTool.sending = false; btn.innerHTML = originalText; btn.classList.remove('stop-mode');
+                }
+            }
+        };
+
+        // --- AUTH & SYSTEM ---
+        const firebaseConfig = { apiKey: "AIzaSyC7mcLrYgAP_B5CDo8flvOGk4N38c7GpHE", authDomain: "leads-hunter-2.firebaseapp.com", projectId: "leads-hunter-2", storageBucket: "leads-hunter-2.firebasestorage.app", messagingSenderId: "547105376762", appId: "1:547105376762:web:1a25c01fb0432d2412fc43" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        window.Utils = { wait: (ms) => new Promise(r => setTimeout(r, ms)), generateId: () => Math.random().toString(36).substr(2, 9) };
+
+        window.AuthSystem = {
+            currentUser: null,
+            init: () => {
+                let width = 0; const bar = document.getElementById('boot-bar'); const status = document.getElementById('boot-status');
+                const interval = setInterval(() => {
+                    width += 4; bar.style.width = Math.min(width, 100) + '%';
+                    if(width>=100) { 
+                        clearInterval(interval); 
+                        if(typeof lucide!=='undefined') lucide.createIcons(); 
+                        setTimeout(()=>window.Navigation.switchScreen('auth-screen'),200); 
+                        DataCore.refreshUI(); 
+                    }
+                }, 20); 
+            },
+            toggleForms: () => { document.getElementById('login-form').classList.toggle('hidden'); document.getElementById('register-form').classList.toggle('hidden'); },
+            login: async () => {
+                const email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPass').value;
+                const btn = document.getElementById('btn-login-action');
+                btn.innerHTML = "VERIFICANDO...";
+                await window.Utils.wait(800);
+                try {
+                    const snap = await db.collection("users").where("email","==",email).where("password","==",pass).get();
+                    if(snap.empty) { btn.innerHTML = "ENTRAR"; return alert("Inválido."); }
+                    const u = snap.docs[0].data();
+                    const days = Math.floor((new Date()-new Date(u.createdAt))/(1000*60*60*24));
+                    if(days>30 && u.active) await db.collection("users").doc(u.uid).update({active:false});
+                    if(!u.active || days>30) { 
+                        document.getElementById('login-form').classList.add('hidden'); 
+                        document.getElementById('renewal-block').classList.remove('hidden'); 
+                        return; 
+                    }
+                    window.AuthSystem.currentUser = u;
+                    window.Navigation.switchScreen('intro-chat'); window.IntroSystem.start();
+                    window.ConfigSystem.load();
+                } catch(e) { btn.innerHTML = "ENTRAR"; alert("Erro: "+e.message); }
+            },
+            logout: () => { window.location.reload(); },
+            register: async () => {
+                const name = document.getElementById('regName').value;
+                const email = document.getElementById('regEmail').value;
+                const pass = document.getElementById('regPass').value;
+                
+                if (!name || !email || !pass) return alert("Por favor, preencha todos os campos.");
+                
+                const btn = document.querySelector('#register-form button'); // Selector
+                const originalText = btn.innerHTML;
+                btn.innerHTML = "CADASTRANDO...";
+                btn.disabled = true;
+                
+                try {
+                    const checkSnapshot = await db.collection("users").where("email", "==", email).get();
+                    if (!checkSnapshot.empty) {
+                        alert("Este e-mail já está cadastrado.");
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    const uid = "user_" + window.Utils.generateId();
+                    
+                    await db.collection("users").doc(uid).set({
+                        uid: uid,
+                        name: name,
+                        email: email,
+                        password: pass,
+                        active: true,
+                        createdAt: new Date().toISOString()
+                    });
+
+                    alert("Conta criada com sucesso! Faça login para continuar.");
+                    window.AuthSystem.toggleForms();
+                    
+                } catch (e) {
+                    alert("Erro ao criar conta: " + e.message);
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            },
+            promptAdmin: () => { if(prompt("SENHA:")==='adminsamuel') window.AdminSystem.open(); }
+        };
+
+        window.ConfigSystem = {
+            save: async () => {
+                const url = document.getElementById('conf-url').value;
+                const key = document.getElementById('conf-key').value;
+                const inst = document.getElementById('conf-inst').value;
+
+                if(!url || !key || !inst) return alert("Preencha tudo!");
+
+                localStorage.setItem('evo_url', url);
+                localStorage.setItem('evo_key', key);
+                localStorage.setItem('evo_inst', inst);
+
+                // NEURAL LOCK LOGIC
+                if(window.AuthSystem.currentUser) {
+                    try {
+                        const uid = window.AuthSystem.currentUser.uid;
+                        await db.collection('users').doc(uid).update({
+                            instanceName: inst,
+                            instanceLocked: true,
+                            evo_url: url, // Saving sensitive config to cloud for persistence
+                            evo_key: key
+                        });
+                        // Update local object
+                        window.AuthSystem.currentUser.instanceName = inst;
+                        window.AuthSystem.currentUser.instanceLocked = true;
+                        window.AuthSystem.currentUser.evo_url = url;
+                        window.AuthSystem.currentUser.evo_key = key;
+
+                        window.ConfigSystem.renderLockState();
+                        alert("Configuração Salva e Instância Vinculada (Travada)!");
+                    } catch(e) { alert("Erro ao salvar no servidor: " + e.message); }
+                } else {
+                    alert("Salvo localmente (modo sem usuário).");
+                }
+            },
+            load: () => {
+                // Check if user has locked instance
+                const user = window.AuthSystem.currentUser;
+                if(user && user.instanceLocked) {
+                    document.getElementById('conf-url').value = user.evo_url || '';
+                    document.getElementById('conf-key').value = user.evo_key || '';
+                    document.getElementById('conf-inst').value = user.instanceName || '';
+                    window.ConfigSystem.renderLockState();
+                } else {
+                    // Fallback to local storage
+                    if(localStorage.getItem('evo_url')) document.getElementById('conf-url').value = localStorage.getItem('evo_url');
+                    if(localStorage.getItem('evo_key')) document.getElementById('conf-key').value = localStorage.getItem('evo_key');
+                    if(localStorage.getItem('evo_inst')) document.getElementById('conf-inst').value = localStorage.getItem('evo_inst');
+                    
+                    document.getElementById('conf-inst').disabled = false;
+                    document.getElementById('lock-icon').classList.add('hidden');
+                }
+            },
+            renderLockState: () => {
+                const user = window.AuthSystem.currentUser;
+                if(user && user.instanceLocked) {
+                    document.getElementById('conf-inst').disabled = true;
+                    document.getElementById('lock-icon').classList.remove('hidden');
+                } else {
+                    document.getElementById('conf-inst').disabled = false;
+                    document.getElementById('lock-icon').classList.add('hidden');
+                }
+            }
+        };
+
+        window.AdminSystem = {
+            open: async () => {
+                document.getElementById('admin-terminal').style.display = 'block';
+                const content = document.getElementById('admin-content'); content.innerHTML = "Fetching...";
+                try {
+                    const snap = await db.collection("users").get();
+                    let html = '<table class="w-full text-xs font-code"><tr><th class="p-2">Nome</th><th class="p-2">Instância</th><th class="p-2">Data/Hora</th><th class="p-2">Status</th><th class="p-2">Ação</th></tr>';
+                    snap.forEach(doc => {
+                        const u = doc.data();
+                        const d = u.createdAt ? new Date(u.createdAt).toLocaleString('pt-BR') : 'N/A';
+                        const inst = u.instanceName || '--';
+                        
+                        html += `<tr class="border-b border-green-900/30">
+                            <td class="p-2">${u.name}</td>
+                            <td class="p-2 text-blue-400">${inst} <button onclick="window.AdminSystem.unlockInst('${u.uid}')" class="text-[9px] text-red-500 ml-1 hover:underline">[DESBLOQUEAR]</button></td>
+                            <td class="p-2 text-gray-500">${d}</td>
+                            <td class="p-2 ${u.active?'text-green-500':'text-red-500'}">${u.active?'ON':'OFF'}</td>
+                            <td class="p-2"><button onclick="window.AdminSystem.toggle('${u.uid}',${u.active})">${u.active?'BLOQ':'LIB'}</button></td>
+                        </tr>`;
+                    });
+                    content.innerHTML = html + '</table>';
+                } catch(e) { content.innerHTML="Erro"; }
+            },
+            toggle: async (uid, s) => { await db.collection("users").doc(uid).update({active:!s}); window.AdminSystem.open(); },
+            unlockInst: async (uid) => { 
+                if(confirm("Liberar troca de instância para este usuário?")) {
+                    await db.collection("users").doc(uid).update({instanceLocked: false}); 
+                    alert("Liberado."); window.AdminSystem.open(); 
+                } 
+            }
+        };
+
+        window.Navigation = {
+            switchScreen: (id) => { 
+                document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); 
+                document.getElementById(id).classList.add('active'); 
+                if(typeof lucide !== 'undefined') lucide.createIcons();
+            },
+            enterPortal: (tool) => { 
+                window.Navigation.switchScreen('tool-container'); 
+                document.querySelectorAll('.tool-tab').forEach(t=>t.classList.remove('active')); 
+                document.getElementById('tab-'+tool).classList.add('active'); 
+                if(tool === 'config') window.ConfigSystem.load();
+                if(tool === 'sender') window.SenderTool.updateStats(); 
+            },
+            exitPortal: () => window.Navigation.switchScreen('hub-screen'),
+            
+            // FUNÇÃO REINSERIDA PARA O BOTÃO FUNCIONAR
+            startWormhole: async () => {
+                const canvas = document.getElementById('wormhole-canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.style.display = 'block';
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                canvas.classList.add('visible'); 
+                
+                // Animação Simples de Wormhole
+                let stars = [];
+                for(let i=0; i<800; i++) stars.push({x:Math.random()*canvas.width-canvas.width/2, y:Math.random()*canvas.height-canvas.height/2, z:Math.random()*2000});
+                
+                let animationFrame;
+                const animate = () => {
+                    if(canvas.style.display === 'none') return;
+                    ctx.fillStyle = "black"; ctx.fillRect(0,0,canvas.width, canvas.height);
+                    const cx = canvas.width/2, cy = canvas.height/2;
+                    stars.forEach(s => {
+                        s.z -= 30; if(s.z<=0) s.z=2000;
+                        const k = 128.0/s.z, px = s.x*k+cx, py = s.y*k+cy;
+                        if(px>=0 && px<=canvas.width && py>=0 && py<=canvas.height) {
+                            const size = (1-s.z/2000)*4, intense = 1-s.z/2000;
+                            ctx.fillStyle = `rgb(${Math.floor(212*intense)},${Math.floor(175*intense)},${Math.floor(55*intense)})`;
+                            ctx.beginPath(); ctx.arc(px,py,size,0,Math.PI*2); ctx.fill();
+                        }
+                    });
+                    animationFrame = requestAnimationFrame(animate);
+                };
+                animate();
+
+                // Transição
+                await window.Utils.wait(2000); 
+                
+                cancelAnimationFrame(animationFrame);
+                canvas.classList.remove('visible'); 
+                setTimeout(() => { canvas.style.display = 'none'; }, 500);
+                
+                window.Navigation.switchScreen('hub-screen');
+                
+                // Animação de entrada dos cards
+                const cards = document.querySelectorAll('#hub-grid .hub-card');
+                cards.forEach((card, index) => {
+                    card.style.opacity = '0';
+                    card.classList.remove('animate-in');
+                    setTimeout(() => card.classList.add('animate-in'), index * 150);
+                });
+            }
+        };
+
+        window.IntroSystem = { start: async () => { const c = document.getElementById('chat-container'); c.innerHTML='<h3 class="text-[#D4AF37] font-display text-xl mb-6 opacity-0 transition-opacity duration-500 font-bold tracking-wider text-center" id="intro-headline">Mensagem de Samuel para você:<br>Aguarde o carregamento</h3>'; requestAnimationFrame(() => document.getElementById('intro-headline').classList.remove('opacity-0')); await window.Utils.wait(1500); const m=["Sistema: Conectando rede neural...","Sistema: Validando credenciais...","Sistema: Acesso liberado."]; for(let t of m){ const e=document.createElement('div'); e.className='chat-bubble text-gray-300 font-mono text-xs border-l-2 border-[#D4AF37] pl-3'; e.innerHTML=t; c.appendChild(e); await window.Utils.wait(10); e.classList.add('visible'); await window.Utils.wait(800); } document.getElementById('chat-actions').style.opacity='1'; } };
+
+        window.onload = () => { window.AuthSystem.init(); 
+            // Particles
+            const canvas = document.getElementById('particles-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            let particles = [];
+            for(let i=0; i<40; i++) particles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, vx:(Math.random()-0.5)*0.5, vy:(Math.random()-0.5)*0.5});
+            function animParticles() {
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                ctx.fillStyle = "rgba(212,175,55,0.15)";
+                particles.forEach(p => {
+                    p.x += p.vx; p.y += p.vy;
+                    if(p.x<0||p.x>canvas.width) p.vx*=-1;
+                    if(p.y<0||p.y>canvas.height) p.vy*=-1;
+                    ctx.beginPath(); ctx.arc(p.x,p.y,1.5,0,Math.PI*2); ctx.fill();
+                });
+                requestAnimationFrame(animParticles);
+            }
+            animParticles();
+        };
+    </script>
+</body>
+</html>
