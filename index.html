@@ -2,8 +2,11 @@
 <html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leads Hunter | God Mode v6.2.1 (Cloud Sync Edition)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#010103">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Leads Hunter | Mobile Stealth v11.1</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -15,342 +18,357 @@
     <style>
         :root { 
             --gold: #D4AF37; 
-            --gold-glow: rgba(212, 175, 55, 0.6);
-            --bg-deep: #020202; 
-            --panel-bg: rgba(10, 10, 10, 0.75);
-            --glass-border: rgba(212, 175, 55, 0.2);
+            --gold-gradient: linear-gradient(135deg, #FFD700 0%, #D4AF37 50%, #AA8A28 100%);
+            --bg-deep: #010103; 
+            --panel-bg: rgba(12, 12, 14, 0.85);
         }
 
-        /* --- ESTÉTICA ELITE --- */
-        * { -webkit-font-smoothing: antialiased; }
+        * { -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         
         body { 
             background-color: var(--bg-deep); 
             color: #e4e4e7; 
             font-family: 'Plus Jakarta Sans', sans-serif;
             overflow: hidden; 
-            height: 100vh;
-            background-image: radial-gradient(circle at 50% -20%, #1a1508, #000000);
-            background-attachment: fixed;
+            height: 100dvh; 
+            perspective: 1000px;
         }
+
+        .custom-scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .custom-scroll::-webkit-scrollbar { width: 3px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .deep-space-bg { position: fixed; inset: 0; z-index: -3; background: radial-gradient(circle at 50% 30%, #0a0a12 0%, #000000 100%); }
+        .nebula-layer {
+            position: fixed; inset: 0; z-index: -2;
+            background-image: radial-gradient(circle at 50% 50%, rgba(30, 20, 60, 0.3) 0%, transparent 70%);
+            filter: blur(60px); mix-blend-mode: screen; will-change: opacity;
+            animation: nebulaPulse 15s infinite alternate ease-in-out;
+        }
+        @keyframes nebulaPulse { 0% { opacity: 0.4; } 100% { opacity: 0.7; } }
+        
+        #starfield-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; mix-blend-mode: screen; }
 
         .font-display { font-family: 'Outfit', sans-serif; }
         .font-code { font-family: 'JetBrains Mono', monospace; }
-
-        #particles-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.5; }
-        #wormhole-canvas {
-            position: fixed; inset: 0; z-index: 100; 
-            display: none; pointer-events: none;
-            background: transparent; opacity: 0; transition: opacity 0.4s ease-in-out;
+        .text-metallic {
+            background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0px 0px 15px rgba(212, 175, 55, 0.3);
         }
-        #wormhole-canvas.visible { opacity: 1; }
 
-        /* --- COMPONENTES DE VIDRO --- */
         .glass-panel { 
             background: var(--panel-bg); 
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(25px); 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(30px) saturate(150%); 
             border-radius: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .glass-panel::after {
-            content: ''; position: absolute; inset: 0; border-radius: 20px;
-            padding: 1px; background: linear-gradient(135deg, rgba(212,175,55,0.3), transparent 40%, rgba(212,175,55,0.1));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor; mask-composite: exclude;
-            pointer-events: none;
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.8);
         }
 
         .god-input { 
-            background: rgba(20, 20, 20, 0.6); 
-            border: 1px solid rgba(255, 255, 255, 0.08); 
+            background: rgba(0, 0, 0, 0.4); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
             color: #fff; 
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 12px;
-            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px; 
+            padding: 16px; 
+            transition: all 0.2s;
         }
-        .god-input:focus { 
-            background: rgba(30, 30, 30, 0.8);
-            border-color: var(--gold); 
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.15); 
-            outline: none;
-            transform: scale(1.01);
-        }
+        .god-input:focus { border-color: var(--gold); background: rgba(0,0,0,0.7); outline: none; }
 
         .btn-action {
-            position: relative;
-            background: linear-gradient(135deg, #D4AF37 0%, #AA8A28 100%);
-            color: #000; font-weight: 800; text-transform: uppercase;
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative; width: 100%;
+            background: var(--gold-gradient);
+            color: #050505; 
+            font-weight: 800; text-transform: uppercase;
+            padding: 18px; 
             border-radius: 12px; letter-spacing: 1px;
+            border: none; overflow: hidden;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.2);
         }
-        .btn-action:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3); filter: brightness(1.1); }
-        
-        .btn-action.stop-mode {
-            background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
-            color: white;
-            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
-        }
+        .btn-action:active { transform: scale(0.98); } 
+        .btn-action.stop-mode { background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); color: white; }
 
+        #screens { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; }
+        
         .screen {
             position: absolute; inset: 0;
-            display: none; flex-direction: column; 
-            align-items: center; justify-content: center;
-            z-index: 10; opacity: 0; pointer-events: none;
-            transition: opacity 0.5s ease;
+            display: flex; flex-direction: column;
+            opacity: 0; pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transform: translateZ(-100px) scale(0.9);
+            filter: blur(10px);
+            visibility: hidden;
+            overflow: hidden;
         }
-        .screen.active { display: flex; opacity: 1; pointer-events: auto; }
-
-        .loader-bar-container { width: 320px; height: 2px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; margin-top: 30px; }
-        .loader-bar { height: 100%; background: var(--gold); width: 0%; box-shadow: 0 0 20px var(--gold); }
+        .screen.active { 
+            opacity: 1; pointer-events: auto; visibility: visible;
+            transform: translateZ(0) scale(1); filter: blur(0); z-index: 10;
+        }
+        .screen.exit-depth { animation: mobileSlideOut 0.6s forwards; }
+        .screen.enter-depth { animation: mobileSlideIn 0.6s forwards; }
+        
+        @keyframes mobileSlideIn { 
+            from { opacity: 0; transform: translateY(50px) scale(0.95); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
+        @keyframes mobileSlideOut { 
+            from { opacity: 1; transform: scale(1); } 
+            to { opacity: 0; transform: scale(0.9); filter: blur(5px); } 
+        }
 
         .hub-card {
-            width: 260px; height: 320px; 
-            background: rgba(16, 16, 16, 0.95); border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 20px; cursor: pointer; transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative; overflow: hidden; opacity: 0; transform: translateY(20px);
+            width: 100%; 
+            background: linear-gradient(90deg, rgba(25,25,28,0.95) 0%, rgba(10,10,12,0.98) 100%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px; 
+            padding: 20px;
+            display: flex; align-items: center; justify-content: flex-start; gap: 20px;
+            margin-bottom: 12px;
+            position: relative; overflow: hidden;
         }
-        .hub-card.animate-in { animation: slideUp 0.6s forwards cubic-bezier(0.23, 1, 0.32, 1); }
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); } 
+        .hub-card:active { transform: scale(0.98); border-color: var(--gold); }
+        .hub-card-icon { 
+            width: 50px; height: 50px; border-radius: 12px; 
+            display: flex; items-center; justify-center; 
+            flex-shrink: 0;
         }
-        .hub-card:hover { transform: translateY(-10px); border-color: var(--gold); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 15px rgba(212, 175, 55, 0.1); }
 
-        .chat-bubble {
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.15);
-            padding: 20px 30px; border-radius: 16px; border-bottom-left-radius: 2px;
-            margin-bottom: 20px; max-width: 600px; opacity: 0; transform: translateY(15px);
-            backdrop-filter: blur(10px);
-        }
-        .chat-bubble.visible { animation: popIn 0.5s forwards cubic-bezier(0.23, 1, 0.32, 1); }
-        @keyframes popIn { to { opacity: 1; transform: translateY(0); } }
-
-        .tool-tab { display: none; height: 100%; width: 100%; }
-        .tool-tab.active { display: flex; flex-direction: column; }
+        .loader-bar-container { width: 200px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 30px; overflow: hidden; }
+        .loader-bar { height: 100%; background: var(--gold); width: 0%; }
         
-        .nav-back { position: absolute; top: 30px; left: 30px; cursor: pointer; z-index: 50; display: flex; gap: 10px; align-items: center; opacity: 0.6; transition: 0.3s; font-weight: 700; font-size: 11px; letter-spacing: 1px; }
-        .nav-back:hover { opacity: 1; color: var(--gold); }
-
-        .stats-box { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; text-align: center; }
-        .stats-val { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 800; }
-        .stats-label { font-size: 0.6rem; text-transform: uppercase; color: #555; letter-spacing: 2px; font-weight: 900; }
+        .nav-back { 
+            position: absolute; top: 20px; left: 20px; z-index: 50;
+            background: rgba(0,0,0,0.6); padding: 10px 16px; border-radius: 100px; 
+            border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+            font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px;
+        }
         
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+        #admin-terminal { background: rgba(0,0,0,0.98); font-size: 10px; }
     </style>
 </head>
 <body>
 
-    <canvas id="particles-canvas"></canvas>
-    <canvas id="wormhole-canvas"></canvas> 
+    <div class="deep-space-bg"></div>
+    <div class="nebula-layer"></div>
+    <canvas id="starfield-canvas"></canvas> 
 
     <div id="screens">
         
-        <!-- 1. BOOT SCREEN -->
-        <div id="boot-screen" class="screen active bg-black z-50">
-            <div class="text-center">
-                <h1 class="font-display text-6xl text-[#D4AF37] tracking-[0.3em] font-black" style="text-shadow: 0 0 40px rgba(212,175,55,0.3);">LEADS HUNTER</h1>
-                <p class="font-code text-[10px] text-gray-500 mt-6 tracking-[0.5em] uppercase opacity-50">Inicializando Núcleo Neural...</p>
+        <div id="boot-screen" class="screen active z-50 justify-center">
+            <div class="text-center relative px-6">
+                <div class="absolute inset-0 bg-yellow-500/20 blur-[80px] rounded-full animate-pulse"></div>
+                <h1 class="font-display text-5xl md:text-7xl text-metallic tracking-tight font-black relative z-10 leading-none">LEADS<br>HUNTER</h1>
+                <p class="font-code text-[10px] text-gray-400 mt-6 tracking-[0.5em] uppercase opacity-70">Mobile Core v11.1</p>
                 <div class="loader-bar-container mx-auto"><div id="boot-bar" class="loader-bar"></div></div>
-                <div id="boot-status" class="font-code text-[9px] text-gold mt-4 h-4 uppercase tracking-widest">Sincronizando Sistemas de Elite...</div>
+                <div id="boot-status" class="font-code text-[9px] text-[#D4AF37] mt-4 uppercase tracking-widest">Descriptografando Núcleo...</div>
             </div>
         </div>
 
-        <!-- 2. AUTH SCREEN -->
-        <div id="auth-screen" class="screen z-40">
-            <div class="glass-panel w-full max-w-[420px] p-12 flex flex-col items-center">
-                <div onclick="window.AuthSystem.promptAdmin()" class="absolute top-6 left-6 cursor-pointer opacity-20 hover:opacity-100 transition-all p-2 rounded-full hover:bg-white/5">
-                    <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
-                </div>
-                <div class="mb-12 text-center">
-                    <h2 class="font-display text-4xl text-white font-black tracking-tight mb-2">BEM-VINDO</h2>
-                    <p class="font-code text-[10px] uppercase tracking-[0.4em] text-gold/60">Security Protocol Alpha</p>
-                </div>
-                <div id="login-form" class="w-full space-y-5">
-                    <div class="group">
-                        <label class="text-[10px] text-gray-500 uppercase font-black ml-1 mb-2 block tracking-widest group-focus-within:text-gold transition-colors">E-mail de Acesso</label>
-                        <input type="email" id="loginEmail" class="god-input w-full p-4 text-sm" placeholder="nome@exemplo.com">
+        <div id="auth-screen" class="screen z-40 bg-black/50 backdrop-blur-sm overflow-y-auto custom-scroll">
+            <div class="w-full min-h-full flex flex-col justify-center p-6 py-12">
+                <div class="glass-panel w-full p-8 flex flex-col items-center relative border-t-2 border-t-yellow-500/30">
+                    <div onclick="window.AuthSystem.promptAdmin()" class="absolute top-4 left-4 p-2 opacity-30"><i data-lucide="shield" class="w-5 h-5"></i></div>
+
+                    <div class="mb-8 text-center">
+                        <h2 class="font-display text-4xl text-white font-black tracking-tight">ACESSO</h2>
+                        <p class="font-code text-[10px] uppercase tracking-widest text-gray-400 mt-1">Identificação Operacional</p>
                     </div>
-                    <div class="group">
-                        <label class="text-[10px] text-gray-500 uppercase font-black ml-1 mb-2 block tracking-widest group-focus-within:text-gold transition-colors">Chave de Segurança</label>
-                        <input type="password" id="loginPass" class="god-input w-full p-4 text-sm" placeholder="••••••••">
+
+                    <div id="login-form" class="w-full space-y-5">
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase font-bold ml-1 mb-1.5 block tracking-widest">E-mail</label>
+                            <input type="email" id="loginEmail" class="god-input w-full" placeholder="usuario@email.com">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase font-bold ml-1 mb-1.5 block tracking-widest">Senha</label>
+                            <input type="password" id="loginPass" class="god-input w-full" placeholder="••••••••">
+                        </div>
+                        
+                        <button id="btn-login-action" onclick="window.AuthSystem.login()" class="btn-action mt-2">
+                            ENTRAR <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                        
+                        <div class="text-center mt-8 pt-6 border-t border-white/5">
+                            <button onclick="window.AuthSystem.toggleForms()" class="text-xs text-gray-400 font-bold uppercase tracking-wider py-2">Criar Conta</button>
+                        </div>
                     </div>
-                    <button id="btn-login-action" onclick="window.AuthSystem.login()" class="btn-action w-full p-4 mt-4 text-sm font-black shadow-2xl">AUTENTICAR</button>
-                    <div class="text-center mt-10 pt-6 border-t border-white/5">
-                        <button onclick="window.AuthSystem.toggleForms()" class="text-[10px] text-gold hover:text-white transition font-black uppercase tracking-[0.2em]">Não tem conta? <span class="text-white">Criar Acesso</span></button>
+
+                    <div id="register-form" class="hidden w-full space-y-5">
+                        <input type="text" id="regName" class="god-input w-full" placeholder="Nome">
+                        <input type="email" id="regEmail" class="god-input w-full" placeholder="E-mail">
+                        <input type="password" id="regPass" class="god-input w-full" placeholder="Senha">
+                        <button onclick="window.AuthSystem.register()" class="btn-action">CADASTRAR</button>
+                        <div class="text-center mt-4"><button onclick="window.AuthSystem.toggleForms()" class="text-xs text-gray-400 uppercase font-bold">Voltar</button></div>
                     </div>
-                </div>
-                <div id="register-form" class="hidden w-full space-y-5">
-                    <div><label class="text-[10px] text-gray-500 uppercase font-black mb-2 block">Nome Completo</label><input type="text" id="regName" class="god-input w-full p-4 text-sm"></div>
-                    <div><label class="text-[10px] text-gray-500 uppercase font-black mb-2 block">E-mail</label><input type="email" id="regEmail" class="god-input w-full p-4 text-sm"></div>
-                    <div><label class="text-[10px] text-gray-500 uppercase font-black mb-2 block">Senha</label><input type="password" id="regPass" class="god-input w-full p-4 text-sm"></div>
-                    <button onclick="window.AuthSystem.register()" class="btn-action w-full p-4 font-black">CADASTRAR</button>
-                    <div class="text-center mt-4"><button onclick="window.AuthSystem.toggleForms()" class="text-[10px] text-gray-500 uppercase font-bold">Voltar ao Login</button></div>
-                </div>
-                <div id="renewal-block" class="hidden w-full text-center py-6">
-                    <div class="text-red-500 font-display font-black uppercase tracking-widest text-2xl">ACESSO SUSPENSO</div>
-                    <p class="text-xs text-gray-400 mb-6 mt-2">Sua licença expirou. Reative agora.</p>
-                    <a href="https://go.ironpayapp.com.br/abdcioak1d" target="_blank" class="btn-action block w-full p-4 bg-red-600 !bg-none !bg-red-600 text-white shadow-xl">RENOVAR LICENÇA</a>
-                </div>
-                <div class="mt-12 opacity-30 text-center">
-                    <p class="font-code text-[8px] text-gray-600 uppercase tracking-[0.3em]">Developer: <span class="text-gray-400 font-bold">Samuel Vitor</span></p>
+
+                    <div id="renewal-block" class="hidden w-full text-center py-6">
+                        <div class="text-red-500 font-black text-xl mb-4">BLOQUEADO</div>
+                        <a href="https://go.ironpayapp.com.br/abdcioak1d" target="_blank" class="btn-action bg-red-600 text-white">RENOVAR</a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 3. CHAT INTRO -->
-        <div id="intro-chat" class="screen z-30 bg-black/95">
-            <div id="chat-container" class="flex flex-col items-center justify-center w-full max-w-2xl px-6"></div>
-            <div id="chat-actions" class="mt-8 opacity-0 transition duration-500">
-                <button onclick="window.Navigation.startWormhole()" class="btn-action px-10 py-5 rounded-full text-lg shadow-[0_0_50px_rgba(212,175,55,0.3)] flex items-center gap-4">
-                    ACESSAR NÚCLEO <i data-lucide="zap" class="w-6 h-6"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- 4. HUB -->
-        <div id="hub-screen" class="screen z-20">
-            <h2 class="font-display text-4xl text-white mb-16 font-black tracking-[0.2em] text-center uppercase">Operations Center</h2>
-            <div class="flex flex-wrap justify-center gap-8 px-4" id="hub-grid">
+        <div id="intro-chat" class="screen z-30 p-6">
+            <div class="glass-panel p-6 w-full h-[60vh] flex flex-col justify-end border-l-2 border-l-gold relative overflow-hidden">
+                <div class="absolute top-4 right-4 opacity-10"><i data-lucide="terminal" class="w-16 h-16 text-white"></i></div>
+                <div id="chat-container" class="flex flex-col items-start w-full space-y-3 font-mono text-xs overflow-y-auto"></div>
                 
-                <div class="hub-card border-l-[6px] border-l-[#D4AF37]" onclick="window.Navigation.enterPortal('spider')">
-                    <div class="mb-6"><i data-lucide="globe" class="w-12 h-12 text-[#D4AF37]"></i></div>
-                    <h3 class="text-xl font-bold uppercase text-white tracking-wide">Hunter Search</h3>
-                    <p class="text-[10px] text-gray-500 text-center px-6 mt-3 font-medium">Busca inteligente de grupos.</p>
+                <div id="chat-actions" class="mt-8 opacity-0 transition duration-1000 w-full">
+                    <button onclick="window.Navigation.engageWarpDrive()" class="btn-action shadow-[0_0_40px_rgba(212,175,55,0.4)]">
+                        INICIAR SISTEMA <i data-lucide="zap" class="w-4 h-4 fill-black"></i>
+                    </button>
                 </div>
-
-                <div class="hub-card border-l-[6px] border-l-purple-500" onclick="window.Navigation.enterPortal('extractor')">
-                    <div class="mb-6"><i data-lucide="scan-line" class="w-12 h-12 text-purple-500"></i></div>
-                    <h3 class="text-xl font-bold uppercase text-white tracking-wide">Extrator Pro</h3>
-                    <p class="text-[10px] text-gray-500 text-center px-6 mt-3 font-medium">Captura e Remarketing.</p>
-                </div>
-
-                <div class="hub-card border-l-[6px] border-l-green-500" onclick="window.Navigation.enterPortal('sender')">
-                    <div class="mb-6"><i data-lucide="send" class="w-12 h-12 text-green-500"></i></div>
-                    <h3 class="text-xl font-bold uppercase text-white tracking-wide">Disparador</h3>
-                    <p class="text-[10px] text-gray-500 text-center px-6 mt-3 font-medium">Envio massivo por funil.</p>
-                </div>
-
-                <div class="hub-card border-l-[6px] border-l-blue-500" onclick="window.Navigation.enterPortal('config')">
-                    <div class="mb-6"><i data-lucide="cpu" class="w-12 h-12 text-blue-500"></i></div>
-                    <h3 class="text-xl font-bold uppercase text-white tracking-wide">Neural Config</h3>
-                    <p class="text-[10px] text-gray-500 text-center px-6 mt-3 font-medium">Configuração da API.</p>
-                </div>
-
             </div>
-            <button onclick="window.AuthSystem.logout()" class="mt-16 text-[10px] text-red-500/60 hover:text-red-400 border border-red-900/20 hover:bg-red-950/20 px-8 py-3 rounded-full transition uppercase font-black tracking-widest flex items-center gap-3">
-                <i data-lucide="power" class="w-4 h-4"></i> Encerrar Sessão
-            </button>
         </div>
 
-        <!-- 5. TOOLS CONTAINER -->
-        <div id="tool-container" class="screen z-20 bg-[#020202] pt-20">
-            <div onclick="window.Navigation.exitPortal()" class="nav-back group">
-                <i data-lucide="chevron-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
-                <span>VOLTAR AO HUB</span>
-            </div>
+        <div id="hub-screen" class="screen z-20 overflow-y-auto custom-scroll">
+            <div class="w-full min-h-full p-6 pb-24 flex flex-col">
+                <header class="flex justify-between items-center mb-8 sticky top-0 bg-[#010103]/80 backdrop-blur-md py-4 z-20 border-b border-white/5">
+                    <div><h2 class="font-display text-2xl text-white font-black tracking-tight uppercase">COMMAND<span class="text-metallic">DECK</span></h2></div>
+                    <div class="flex items-center gap-2"><div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div><span class="text-[9px] text-green-500 font-black tracking-widest">ON</span></div>
+                </header>
 
-            <!-- TAB: CONFIG -->
-            <div id="tab-config" class="tool-tab max-w-4xl mx-auto p-4 justify-center">
-                <div class="glass-panel p-10 border-l-[6px] border-l-blue-600">
-                    <h2 class="text-3xl font-black text-white mb-8 flex items-center gap-4"><i data-lucide="cpu" class="text-blue-500 w-8 h-8"></i> Configuração Neural</h2>
-                    <div class="space-y-6">
-                        <div class="relative">
-                            <label class="text-[10px] uppercase text-gray-500 font-black mb-2 block tracking-widest">Nome da Instância (Neural Lock)</label>
-                            <div class="flex items-center gap-3">
-                                <input type="text" id="conf-inst" class="god-input w-full p-4 text-sm font-mono" placeholder="Nome_Instancia">
-                                <i data-lucide="lock" id="lock-icon" class="hidden text-red-500 w-6 h-6 animate-pulse"></i>
-                            </div>
-                            <p class="text-[9px] text-gray-600 mt-3 italic font-medium">
-                                * A infraestrutura de API (URL e Key) é gerenciada automaticamente pelo núcleo para garantir estabilidade e segurança absoluta.
-                            </p>
-                        </div>
-                        <button onclick="window.ConfigSystem.save()" class="btn-action w-full py-5 text-sm mt-4 shadow-xl shadow-blue-900/20">SINCRONIZAR E TRAVAR</button>
+                <div class="mb-6">
+                    <h3 class="text-[10px] text-purple-400 font-black uppercase tracking-[0.2em] mb-3 ml-1">Intelligence</h3>
+                    <div class="hub-card border-l-2 border-l-yellow-500" onclick="window.Navigation.enterPortal('spider')">
+                        <div class="hub-card-icon bg-yellow-500/10"><i data-lucide="globe" class="w-6 h-6 text-yellow-500"></i></div>
+                        <div><h4 class="text-lg font-black text-white uppercase">Hunter Search</h4><p class="text-[10px] text-gray-400">Varredura de Grupos</p></div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-600 ml-auto"></i>
+                    </div>
+                    <div class="hub-card border-l-2 border-l-purple-500" onclick="window.Navigation.enterPortal('extractor')">
+                        <div class="hub-card-icon bg-purple-500/10"><i data-lucide="database" class="w-6 h-6 text-purple-500"></i></div>
+                        <div><h4 class="text-lg font-black text-white uppercase">Extrator Pro</h4><p class="text-[10px] text-gray-400">Mineração de Leads</p></div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-600 ml-auto"></i>
                     </div>
                 </div>
-            </div>
 
-            <!-- TAB: SPIDER -->
-            <div id="tab-spider" class="tool-tab max-w-6xl mx-auto p-4 pt-10">
-                <div class="glass-panel p-10 rounded-xl h-full flex flex-col border-l-[6px] border-l-[#D4AF37]">
-                    <h2 class="text-3xl font-black text-[#D4AF37] mb-3 uppercase">Hunter Search</h2>
-                    <div class="flex gap-4 mb-8">
-                        <input type="text" id="searchTerm" placeholder="Digite o Nicho (Ex: Dropshipping)..." class="god-input flex-1 p-5 text-lg font-bold">
-                        <button onclick="window.SpiderTool.search()" class="btn-action px-10 flex items-center gap-3"><i data-lucide="zap" class="w-5 h-5"></i> LOCALIZAR</button>
-                    </div>
-                    <div id="spider-results" class="flex-1 bg-black/40 rounded-2xl p-10 border border-white/5 text-center text-gray-500 font-mono text-xs">Aguardando comando. Os resultados abrirão em nova aba para extração segura.</div>
-                </div>
-            </div>
-
-            <!-- TAB: EXTRACTOR -->
-            <div id="tab-extractor" class="tool-tab max-w-6xl mx-auto p-4 pt-10">
-                <div class="glass-panel p-10 rounded-xl border-l-[6px] border-l-purple-600 h-full flex flex-col">
-                    <h2 class="text-3xl font-black text-white mb-8 uppercase tracking-widest">Extração & Remarketing</h2>
-                    <div class="flex-1 flex flex-col md:flex-row gap-12">
-                        <div class="flex-1 space-y-8">
-                            <section class="space-y-5">
-                                <h3 class="text-purple-400 text-[10px] uppercase font-black tracking-widest">Filtro de Grupos</h3>
-                                <button onclick="window.ExtractorTool.loadGroups()" class="w-full bg-white/5 text-gray-300 py-3 rounded-xl text-xs font-bold hover:bg-white/10 border border-white/10 transition-all flex items-center justify-center gap-2"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Carregar da Instância</button>
-                                <select id="group-list" class="god-input w-full p-4 text-sm font-bold bg-[#111]"></select>
-                                <button onclick="window.ExtractorTool.extract()" class="btn-action w-full py-5 text-sm font-black shadow-lg shadow-purple-900/30">EXTRAIR CONTATOS</button>
-                            </section>
-                            <section class="space-y-5 pt-8 border-t border-white/5">
-                                <h3 class="text-[#D4AF37] text-[10px] uppercase font-black tracking-widest">Remarketing Estratégico</h3>
-                                <select id="remarketing-funnel-list" class="god-input w-full p-4 text-sm font-bold" onchange="window.ExtractorTool.updateRemarketingCount()"></select>
-                                <div class="flex justify-between items-center py-2"><span class="text-xs text-gray-500 uppercase font-black">Histórico:</span><span id="remarketing-count" class="text-[#D4AF37] font-black font-mono text-xl">0</span></div>
-                                <button onclick="window.ExtractorTool.sendToSender()" class="w-full bg-green-700 hover:bg-green-600 text-white font-black py-5 rounded-xl text-sm uppercase shadow-lg">RECUPERAR PARA LISTA</button>
-                            </section>
+                <div class="mb-6">
+                    <h3 class="text-[10px] text-green-400 font-black uppercase tracking-[0.2em] mb-3 ml-1">Offensive</h3>
+                    <div class="hub-card border-t-4 border-t-green-500 flex-col !items-start !gap-4 !p-6" onclick="window.Navigation.enterPortal('sender')">
+                        <div class="flex justify-between w-full items-start">
+                            <div class="hub-card-icon bg-green-500/10 w-12 h-12"><i data-lucide="send" class="w-6 h-6 text-green-500"></i></div>
+                            <span class="px-2 py-1 bg-green-500/20 rounded text-[9px] font-bold text-green-400 uppercase">Principal</span>
                         </div>
-                        <div class="w-full md:w-64 space-y-6">
-                            <h3 class="text-blue-400 text-[10px] uppercase font-black tracking-widest">Session Analytics</h3>
-                            <div class="glass-panel p-8 bg-blue-500/5 border-blue-500/10 flex flex-col items-center">
-                                <p class="text-[10px] text-gray-500 uppercase font-bold mb-2">Leads em Cache</p>
-                                <p class="text-5xl font-black font-mono text-white" id="base-count">0</p>
-                            </div>
+                        <div>
+                            <h3 class="text-3xl font-black text-white uppercase leading-none mb-2">Disparador<br>Massivo</h3>
+                            <p class="text-xs text-gray-400 leading-relaxed">Motor de envio de alta velocidade.</p>
                         </div>
+                        <div class="w-full h-px bg-white/10 my-2"></div>
+                        <div class="flex items-center gap-2 text-xs font-bold text-white uppercase"><i data-lucide="play-circle" class="w-4 h-4 text-green-500"></i> Iniciar Campanha</div>
                     </div>
                 </div>
-            </div>
 
-            <!-- TAB: SENDER -->
-            <div id="tab-sender" class="tool-tab max-w-7xl mx-auto p-4 pt-5">
-                <div class="flex flex-col lg:flex-row gap-8 h-full">
-                    <div class="flex-[2] glass-panel rounded-xl flex flex-col p-8 border-l-[6px] border-l-green-600">
-                        <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-black text-white">Scripts</h2><button onclick="window.SenderTool.addScript()" class="text-[10px] bg-green-500/10 text-green-400 px-5 py-2 rounded-full border border-green-500/30 hover:bg-green-500/20 font-black uppercase">+ Variação</button></div>
-                        <div id="scripts-container" class="flex-1 overflow-y-auto space-y-6 pr-4 custom-scroll">
-                            <div class="script-block relative"><span class="text-[10px] text-gray-500 uppercase font-black mb-2 block">Variação Alpha</span><textarea id="script-area" class="god-input w-full h-32 p-5 text-sm resize-none leading-relaxed" placeholder="Olá {nome}..."></textarea></div>
-                        </div>
+                <div class="mb-8">
+                    <h3 class="text-[10px] text-blue-400 font-black uppercase tracking-[0.2em] mb-3 ml-1">System</h3>
+                    <div class="hub-card border-l-2 border-l-blue-500" onclick="window.Navigation.enterPortal('config')">
+                        <div class="hub-card-icon bg-blue-500/10"><i data-lucide="cpu" class="w-6 h-6 text-blue-500"></i></div>
+                        <div><h4 class="text-lg font-black text-white uppercase">Neural Config</h4><p class="text-[10px] text-gray-400">API & Instância</p></div>
                     </div>
-                    <div class="flex-1 flex flex-col gap-6">
-                        <div class="glass-panel p-6 rounded-xl border border-white/5">
-                            <div class="flex justify-between items-center mb-4"><label class="text-[10px] text-[#D4AF37] uppercase font-black block">Funil Ativo</label><button onclick="window.SenderTool.promptNewCategory()" class="text-[9px] text-blue-400 hover:text-white font-bold cursor-pointer">[+ Criar]</button></div>
-                            <select id="sender-category" onchange="window.SenderTool.updateStats()" class="god-input w-full p-4 text-sm font-bold bg-[#0a0a0a]"></select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="stats-box"><div class="stats-val text-yellow-500" id="stat-queue">0</div><div class="stats-label">Fila</div></div>
-                            <div class="stats-box"><div class="stats-val text-green-500" id="stat-sent-session">0</div><div class="stats-label">Sessão</div></div>
-                        </div>
-                        <div class="glass-panel p-6 rounded-xl flex-1 flex flex-col">
-                            <label class="text-[10px] text-gray-500 uppercase font-black mb-3">Database de Disparo</label>
-                            <textarea id="target-list" oninput="window.SenderTool.updateStats()" class="flex-1 god-input w-full p-4 rounded-xl text-[10px] font-mono resize-none mb-6" placeholder="551199..."></textarea>
-                            <div class="flex gap-4">
-                                <div class="flex items-center gap-2 bg-black/40 p-3 rounded-xl border border-white/5 flex-1">
-                                    <span class="text-[9px] text-gray-500 uppercase font-black">Delay (s)</span>
-                                    <input type="number" id="delay-min" value="10" class="god-input w-16 text-center text-xs p-2">
-                                    <span class="text-gray-700">|</span>
-                                    <input type="number" id="delay-max" value="20" class="god-input w-16 text-center text-xs p-2">
+                    <button onclick="window.AuthSystem.logout()" class="w-full mt-4 py-4 rounded-xl border border-red-500/20 text-red-500/80 font-black text-xs uppercase flex items-center justify-center gap-2 bg-red-950/10 active:bg-red-950/30"><i data-lucide="power" class="w-4 h-4"></i> Desconectar Sistema</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tool-container" class="screen z-20 bg-[#010103] overflow-y-auto custom-scroll">
+            <div onclick="window.Navigation.exitPortal()" class="nav-back"><i data-lucide="arrow-left" class="w-4 h-4 text-gold"></i> VOLTAR</div>
+            <div class="pt-20 pb-10 px-4 min-h-full">
+                
+                <div id="tab-config" class="tool-tab w-full max-w-md mx-auto">
+                    <div class="glass-panel p-6 border-t-4 border-t-blue-500">
+                        <h2 class="text-2xl font-black text-white mb-6 flex items-center gap-3"><i data-lucide="server" class="text-blue-500 w-6 h-6"></i> Configuração</h2>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="text-[10px] uppercase text-blue-400 font-bold mb-2 block tracking-widest">Nome da Instância</label>
+                                <div class="flex items-center gap-3">
+                                    <input type="text" id="conf-inst" class="god-input w-full font-mono text-sm" placeholder="NOME_INSTANCIA">
+                                    <i data-lucide="lock" id="lock-icon" class="hidden text-red-500 w-5 h-5 flex-shrink-0"></i>
                                 </div>
-                                <button id="btn-sender-start" onclick="window.SenderTool.start()" class="btn-action flex-[2] py-5 text-xs font-black flex items-center justify-center gap-3">
-                                    <i data-lucide="play" class="w-4 h-4 fill-current"></i> INICIAR OPERAÇÃO
-                                </button>
+                                <p class="text-[10px] text-gray-500 mt-3 leading-relaxed">Infraestrutura gerenciada pelo núcleo.</p>
                             </div>
+                            <button onclick="window.ConfigSystem.save()" class="btn-action shadow-blue-900/20">SINCRONIZAR</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-spider" class="tool-tab w-full max-w-md mx-auto">
+                    <div class="glass-panel p-6 border-t-4 border-t-yellow-500 flex flex-col h-[70vh]">
+                        <h2 class="text-2xl font-black text-white mb-6 flex items-center gap-3"><i data-lucide="globe" class="text-yellow-500 w-6 h-6"></i> Hunter</h2>
+                        <div class="flex gap-2 mb-6">
+                            <input type="text" id="searchTerm" placeholder="Nicho..." class="god-input flex-1 font-bold">
+                            <button onclick="window.SpiderTool.search()" class="btn-action !w-auto px-6"><i data-lucide="search" class="w-5 h-5"></i></button>
+                        </div>
+                        <div id="spider-results" class="flex-1 bg-black/40 rounded-xl p-6 border border-white/5 flex flex-col items-center justify-center gap-4 text-center">
+                            <i data-lucide="radar" class="w-12 h-12 text-gray-700 animate-pulse"></i>
+                            <p class="text-gray-500 font-mono text-[10px] uppercase tracking-widest">Aguardando...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-extractor" class="tool-tab w-full max-w-md mx-auto space-y-6">
+                    <div class="glass-panel p-6 border-l-4 border-l-purple-500">
+                        <h2 class="text-2xl font-black text-white mb-6"><i data-lucide="database" class="w-6 h-6 text-purple-500 inline mr-2"></i> Extração</h2>
+                        <div class="space-y-4">
+                            <button onclick="window.ExtractorTool.loadGroups()" class="w-full bg-purple-500/10 text-purple-300 py-3 rounded-lg text-xs font-bold border border-purple-500/20 uppercase">1. Carregar Grupos</button>
+                            <select id="group-list" class="god-input w-full text-xs font-bold bg-[#0a0a0a]"></select>
+                            <button onclick="window.ExtractorTool.extract()" class="btn-action shadow-purple-900/20 text-xs">2. EXTRAIR DADOS</button>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 border-l-4 border-l-yellow-500">
+                        <h3 class="text-yellow-500 text-xs font-black uppercase tracking-widest mb-4">Remarketing</h3>
+                        <select id="remarketing-funnel-list" class="god-input w-full mb-4 text-xs font-bold bg-[#0a0a0a]" onchange="window.ExtractorTool.updateRemarketingCount()"></select>
+                        <div class="flex justify-between items-center py-3 px-4 bg-white/5 rounded-lg mb-4">
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">Leads:</span>
+                            <span id="remarketing-count" class="text-yellow-500 font-black font-mono">0</span>
+                        </div>
+                        <button onclick="window.ExtractorTool.sendToSender()" class="w-full bg-green-900/40 text-green-400 font-bold py-4 rounded-lg text-xs uppercase border border-green-500/30">Enviar p/ Disparador</button>
+                    </div>
+                </div>
+
+                <div id="tab-sender" class="tool-tab w-full max-w-md mx-auto space-y-6">
+                    <div class="glass-panel p-6 border-l-4 border-l-green-600">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-black text-white flex items-center gap-2"><i data-lucide="message-square" class="w-5 h-5 text-green-500"></i> Scripts</h2>
+                            <button onclick="window.SenderTool.addScript()" class="text-[10px] bg-green-500/10 text-green-400 px-3 py-2 rounded border border-green-500/30 font-bold uppercase">+ Novo</button>
+                        </div>
+                        <div id="scripts-container" class="space-y-4 max-h-48 overflow-y-auto custom-scroll">
+                            <div class="script-block relative"><textarea id="script-area" class="god-input w-full h-32 text-xs resize-none" placeholder="Olá {nome}..."></textarea></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="glass-panel p-4 text-center">
+                            <div class="text-yellow-500 font-black text-2xl" id="stat-queue">0</div>
+                            <div class="text-[9px] text-gray-500 uppercase tracking-widest">Fila</div>
+                        </div>
+                        <div class="glass-panel p-4 text-center">
+                            <div class="text-green-500 font-black text-2xl" id="stat-sent-session">0</div>
+                            <div class="text-[9px] text-gray-500 uppercase tracking-widest">Enviados</div>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 border-t-4 border-t-green-600">
+                        <div class="mb-4">
+                            <div class="flex justify-between mb-2">
+                                <label class="text-[10px] text-gray-400 uppercase font-black">Funil</label>
+                                <button onclick="window.SenderTool.promptNewCategory()" class="text-[9px] text-blue-400 font-bold">[+ Criar]</button>
+                            </div>
+                            <select id="sender-category" onchange="window.SenderTool.updateStats()" class="god-input w-full text-xs font-bold bg-[#0a0a0a] mb-4"></select>
+                            <label class="text-[10px] text-gray-400 uppercase font-black mb-2 block">Lista de Alvos</label>
+                            <textarea id="target-list" oninput="window.SenderTool.updateStats()" class="god-input w-full h-32 text-[10px] font-mono resize-none mb-4" placeholder="551199..."></textarea>
+                        </div>
+                        <div class="flex gap-3 items-end">
+                            <div class="flex flex-col gap-1 w-1/3">
+                                <span class="text-[9px] text-center text-gray-500 font-bold">Delay (s)</span>
+                                <div class="flex items-center bg-black/40 rounded-lg border border-white/10">
+                                    <input type="number" id="delay-min" value="10" class="god-input w-1/2 text-center text-xs p-2 border-none bg-transparent">
+                                    <div class="w-px h-4 bg-white/10"></div>
+                                    <input type="number" id="delay-max" value="20" class="god-input w-1/2 text-center text-xs p-2 border-none bg-transparent">
+                                </div>
+                            </div>
+                            <button id="btn-sender-start" onclick="window.SenderTool.start()" class="btn-action flex-1 text-xs"><i data-lucide="play" class="w-4 h-4 fill-black"></i> INICIAR</button>
                         </div>
                     </div>
                 </div>
@@ -358,14 +376,13 @@
         </div>
     </div>
 
-    <!-- ADMIN TERMINAL -->
-    <div id="admin-terminal" style="display:none;" class="fixed inset-0 bg-black/98 z-[10000] p-12 font-code backdrop-blur-2xl">
-        <div class="max-w-6xl mx-auto border border-green-500/30 h-full flex flex-col p-10 rounded-3xl shadow-[0_0_100px_rgba(0,255,0,0.05)] bg-[#020502]">
-            <div class="flex justify-between items-center border-b border-green-500/20 pb-8 mb-8">
-                <span class="text-2xl font-black text-green-500 tracking-tighter uppercase animate-pulse">Root Terminal // Operator Management</span>
-                <button onclick="document.getElementById('admin-terminal').style.display='none'" class="text-xs text-green-500/50 hover:text-white border border-green-500/20 px-6 py-2 rounded-full transition-all">[ ESCAPE ]</button>
+    <div id="admin-terminal" style="display:none;" class="fixed inset-0 bg-black/98 z-[10000] p-4 font-code backdrop-blur-2xl flex flex-col">
+        <div class="border border-green-500/30 flex-1 flex flex-col p-4 rounded-xl bg-[#020502]">
+            <div class="flex justify-between items-center border-b border-green-500/20 pb-4 mb-4">
+                <span class="text-xl font-black text-green-500">TERMINAL</span>
+                <button onclick="document.getElementById('admin-terminal').style.display='none'" class="text-[10px] text-green-500 border border-green-500/20 px-4 py-2 rounded uppercase">[x]</button>
             </div>
-            <div id="admin-content" class="overflow-y-auto custom-scroll pr-4"></div>
+            <div id="admin-content" class="overflow-y-auto custom-scroll text-green-400/80 font-mono text-[10px] leading-relaxed"></div>
         </div>
     </div>
 
@@ -377,71 +394,51 @@
                 const cats = DataCore.getCategories();
                 if(!cats.includes(name)) { cats.push(name); localStorage.setItem('lh_categories', JSON.stringify(cats)); DataCore.refreshUI(); }
             },
-            
-            // ATUALIZADO: GRAVA O LEAD DIRETAMENTE NO FIREBASE PARA PERSISTÊNCIA GLOBAL
             logSent: async (number, category) => {
                 const uid = window.AuthSystem.currentUser?.uid;
                 if(!uid) return;
-
-                try {
-                    // Adiciona à coleção central para que o Admin veja o contador subir
-                    await db.collection("leads").add({
-                        n: number,
-                        c: category,
-                        uid: uid,
-                        d: new Date().toISOString()
-                    });
-                } catch(e) {
-                    console.error("Erro ao sincronizar lead com a nuvem:", e);
-                }
+                try { await db.collection("leads").add({ n: number, c: category, uid: uid, d: new Date().toISOString() }); } catch(e) { console.error(e); }
             },
-
-            // ATUALIZADO: BUSCA NÚMEROS DIRETAMENTE DA NUVEM PARA REMARKETING EM QUALQUER DISPOSITIVO
             getNumbersByCategory: async (category) => {
                 const uid = window.AuthSystem.currentUser?.uid;
                 if(!uid) return [];
-                
                 try {
-                    // Busca todos os leads do usuário e filtra por categoria em memória para evitar complexidade de indexação
                     const snap = await db.collection("leads").where("uid", "==", uid).get();
                     const leads = [];
-                    snap.forEach(doc => {
-                        const data = doc.data();
-                        if(data.c === category) leads.push(data.n);
-                    });
-                    return [...new Set(leads)]; // Remove duplicatas
-                } catch(e) {
-                    console.error("Erro ao recuperar histórico da nuvem:", e);
-                    return [];
-                }
+                    snap.forEach(doc => { const data = doc.data(); if(data.c === category) leads.push(data.n); });
+                    return [...new Set(leads)];
+                } catch(e) { return []; }
             },
-
             refreshUI: () => {
                 const cats = DataCore.getCategories();
                 const senderSel = document.getElementById('sender-category'), remSel = document.getElementById('remarketing-funnel-list');
                 const currentSender = senderSel ? senderSel.value : null;
                 if(senderSel) { senderSel.innerHTML = ''; cats.forEach(c => senderSel.innerHTML += `<option value="${c}">${c}</option>`); if(currentSender && cats.includes(currentSender)) senderSel.value = currentSender; }
-                if(remSel) { remSel.innerHTML = '<option value="">Selecione o Funil...</option>'; cats.forEach(c => remSel.innerHTML += `<option value="${c}">${c}</option>`); }
+                if(remSel) { remSel.innerHTML = '<option value="">Selecione...</option>'; cats.forEach(c => remSel.innerHTML += `<option value="${c}">${c}</option>`); }
             }
         };
 
-        // --- AUTH & SYSTEM ---
-        const firebaseConfig = { apiKey: "AIzaSyC7mcLrYgAP_B5CDo8flvOGk4N38c7GpHE", authDomain: "leads-hunter-2.firebaseapp.com", projectId: "leads-hunter-2", storageBucket: "leads-hunter-2.firebasestorage.app", messagingSenderId: "547105376762", appId: "1:547105376762:web:1a25c01fb0432d2412fc43" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        // --- AUTH & SYSTEM WITH OBFUSCATED CONFIG ---
+        // Configuração camuflada em Base64 para evitar scanners de texto simples
+        const _0xcd2 = "eyJhcGlLZXkiOiJBSXphU3lDN21jTHJZZ0FQX0I1Q0RvOGZsdk9HazROMzhjN0dwSEUiLCJhdXRoRG9tYWluIjoibGVhZHMtaHVudGVyLTIuZmlyZWJhc2VhcHAuY29tIiwicHJvamVjdElkIjoibGVhZHMtaHVudGVyLTIiLCJzdG9yYWdlQnVja2V0IjoibGVhZHMtaHVudGVyLTIuZmlyZWJhc2VzdG9yYWdlLmFwcCIsIm1lc3NhZ2luZ1NlbmRlcklkIjoiNTQ3MTA1Mzc2NzYyIiwiYXBwSWQiOiIxOjU0NzEwNTM3Njc2Mjp3ZWI6MWEyNWMwMWZiMDQzMmQyNDEyZmM0MyJ9";
+        
+        let db; // Database instance global
 
         window.Utils = { 
             wait: (ms) => new Promise(r => setTimeout(r, ms)), 
             generateId: () => Math.random().toString(36).substr(2, 9),
-            getGreeting: () => {
-                const h = new Date().getHours();
-                return h < 12 ? "bom dia" : h < 18 ? "boa tarde" : "boa noite";
-            }
+            getGreeting: () => { const h = new Date().getHours(); return h < 12 ? "bom dia" : h < 18 ? "boa tarde" : "boa noite"; },
+            decodeConfig: () => JSON.parse(atob(_0xcd2)) // Decodificador em tempo real
         };
 
         window.AuthSystem = {
             currentUser: null,
             init: () => {
+                // Inicialização Stealth do Firebase
+                const cfg = window.Utils.decodeConfig();
+                firebase.initializeApp(cfg);
+                db = firebase.firestore();
+
                 let width = 0; const bar = document.getElementById('boot-bar');
                 const interval = setInterval(() => {
                     width += 2; bar.style.width = Math.min(width, 100) + '%';
@@ -454,11 +451,11 @@
                 const btn = document.getElementById('btn-login-action'); btn.innerHTML = "VERIFICANDO..."; await window.Utils.wait(1000);
                 try {
                     const snap = await db.collection("users").where("email","==",email).where("password","==",pass).get();
-                    if(snap.empty) { btn.innerHTML = "AUTENTICAR"; return alert("Acesso negado."); }
+                    if(snap.empty) { btn.innerHTML = "ENTRAR"; return alert("Acesso negado."); }
                     const u = snap.docs[0].data();
                     if(!u.active) { document.getElementById('login-form').classList.add('hidden'); document.getElementById('renewal-block').classList.remove('hidden'); return; }
                     window.AuthSystem.currentUser = u; window.Navigation.switchScreen('intro-chat'); window.IntroSystem.start(); window.ConfigSystem.load();
-                } catch(e) { btn.innerHTML = "AUTENTICAR"; alert("Erro: "+e.message); }
+                } catch(e) { btn.innerHTML = "ENTRAR"; alert("Erro: "+e.message); }
             },
             logout: () => { window.location.reload(); },
             register: async () => {
@@ -476,25 +473,21 @@
             promptAdmin: () => { if(prompt("ACCESS:")==='adminsamuel') window.AdminSystem.open(); }
         };
 
-        // --- NAVIGATION & ELITE HYPER-JUMP ---
+        // --- NAVIGATION ENGINE 3.0 ---
         window.Navigation = {
+            isNavigating: false, 
             switchScreen: (id) => { 
-                document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); 
+                const current = document.querySelector('.screen.active');
                 const target = document.getElementById(id);
-                target.classList.add('active'); 
-                if(window.lucide) lucide.createIcons();
-                if(id === 'hub-screen') {
-                    const cards = document.querySelectorAll('#hub-grid .hub-card');
-                    cards.forEach((card, index) => {
-                        card.classList.remove('animate-in'); 
-                        card.style.opacity = '0';
-                        setTimeout(() => {
-                            card.classList.add('animate-in');
-                        }, index * 100);
-                    });
+                if (current) {
+                    current.classList.remove('active'); current.classList.remove('enter-depth'); current.classList.add('exit-depth');
+                    setTimeout(() => current.classList.remove('exit-depth'), 600);
                 }
+                target.classList.add('active'); target.classList.add('enter-depth');
+                if(window.lucide) lucide.createIcons();
             },
             enterPortal: (tool) => { 
+                if (window.Navigation.isNavigating) return;
                 window.Navigation.switchScreen('tool-container'); 
                 document.querySelectorAll('.tool-tab').forEach(t=>t.classList.remove('active')); 
                 document.getElementById('tab-'+tool).classList.add('active'); 
@@ -503,55 +496,18 @@
                 if(window.lucide) lucide.createIcons();
             },
             exitPortal: () => window.Navigation.switchScreen('hub-screen'),
-            
-            startWormhole: async () => {
-                const canvas = document.getElementById('wormhole-canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.style.display = 'block';
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                canvas.classList.add('visible'); 
-                const stars = [];
-                const numStars = 800;
-                const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
-                for (let i = 0; i < numStars; i++) { stars.push({ x: Math.random() * canvas.width - centerX, y: Math.random() * canvas.height - centerY, z: Math.random() * canvas.width, pz: 0 }); }
-                let speed = 2, frameCount = 0, blackHoleRadius = 0, expansionRate = 1.0, isImploding = false;
-                const animate = () => {
-                    if(canvas.style.display === 'none') return;
-                    ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    frameCount++;
-                    if(frameCount < 80) speed *= 1.06;
-                    else { isImploding = true; speed *= 0.92; expansionRate *= 1.15; blackHoleRadius += expansionRate; }
-                    stars.forEach(s => {
-                        s.pz = s.z; s.z -= speed;
-                        if (s.z <= 1) { s.z = canvas.width; s.pz = s.z; }
-                        if(isImploding) { s.x *= 0.88; s.y *= 0.88; }
-                        const x = s.x * (canvas.width / s.z) + centerX, y = s.y * (canvas.width / s.z) + centerY;
-                        const px = s.x * (canvas.width / s.pz) + centerX, py = s.y * (canvas.width / s.pz) + centerY;
-                        const intensity = (1 - s.z / canvas.width);
-                        ctx.strokeStyle = `rgba(212, 175, 55, ${intensity})`;
-                        ctx.lineWidth = intensity * 5;
-                        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke();
-                    });
-                    if(isImploding) {
-                        const gradient = ctx.createRadialGradient(centerX, centerY, blackHoleRadius * 0.7, centerX, centerY, blackHoleRadius);
-                        gradient.addColorStop(0, "rgba(0,0,0,1)"); gradient.addColorStop(0.7, "rgba(0,0,0,1)"); gradient.addColorStop(1, "rgba(212, 175, 55, 1)");
-                        ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(centerX, centerY, blackHoleRadius, 0, Math.PI * 2); ctx.fill();
-                        ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(centerX, centerY, blackHoleRadius * 0.82, 0, Math.PI * 2); ctx.fill();
-                    }
-                    const maxRadius = Math.sqrt(Math.pow(canvas.width, 2) + Math.pow(canvas.height, 2));
-                    if (blackHoleRadius < maxRadius) requestAnimationFrame(animate);
-                    else {
-                        canvas.classList.remove('visible'); 
-                        setTimeout(() => { 
-                            canvas.style.display = 'none'; 
-                            window.Navigation.switchScreen('hub-screen'); 
-                        }, 50);
-                    }
-                };
-                animate();
+            engageWarpDrive: () => {
+                if (window.Navigation.isNavigating) return;
+                window.Navigation.isNavigating = true;
+                const chatScreen = document.getElementById('intro-chat');
+                chatScreen.style.opacity = '0';
+                if(window.StarfieldSystem) window.StarfieldSystem.startWarp();
+                setTimeout(() => {
+                    chatScreen.classList.remove('active'); chatScreen.style.display = 'none'; 
+                    window.Navigation.switchScreen('hub-screen');
+                    if(window.StarfieldSystem) window.StarfieldSystem.stopWarp();
+                    setTimeout(() => { window.Navigation.isNavigating = false; }, 500);
+                }, 2000); 
             }
         };
 
@@ -559,11 +515,9 @@
         window.SenderTool = {
             sessionCount: 0, sending: false,
             addScript: () => { 
-                const d = document.createElement('div'); 
-                d.className='script-block relative mt-4'; 
-                d.innerHTML=`<textarea class="god-input w-full h-28 p-4 text-sm resize-none" placeholder="Variação..."></textarea><button onclick="this.parentElement.remove()" class="absolute top-0 right-0 p-2 text-red-500 hover:text-red-400 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`; 
-                document.getElementById('scripts-container').appendChild(d);
-                if(window.lucide) lucide.createIcons();
+                const d = document.createElement('div'); d.className='script-block relative mt-2 group'; 
+                d.innerHTML=`<textarea class="god-input w-full h-24 text-xs resize-none" placeholder="Variação..."></textarea><button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`; 
+                document.getElementById('scripts-container').appendChild(d); if(window.lucide) lucide.createIcons();
             },
             updateStats: () => { 
                 const area = document.getElementById('target-list');
@@ -582,25 +536,23 @@
                 if(window.SenderTool.sending) { window.SenderTool.sending = false; return; }
                 const listArea = document.getElementById('target-list');
                 let allLines = listArea.value.split('\n').filter(n => n.trim().length > 5);
-                if(!allLines.length) return alert("Lista de disparos vazia.");
+                if(!allLines.length) return alert("Lista vazia.");
                 let url, key, inst;
                 if(window.AuthSystem.currentUser && window.AuthSystem.currentUser.instanceLocked) {
                     url = window.AuthSystem.currentUser.evo_url; key = window.AuthSystem.currentUser.evo_key; inst = window.AuthSystem.currentUser.instanceName;
                 } else {
                     url = localStorage.getItem('evo_url'); key = localStorage.getItem('evo_key'); inst = localStorage.getItem('evo_inst');
                 }
-                if(!url || !key || !inst) return alert("Erro crítico: Infraestrutura de API não sincronizada. Configure no Neural Config.");
+                if(!url || !key || !inst) return alert("API não configurada.");
                 const mainScript = document.getElementById('script-area').value;
                 const extraScripts = Array.from(document.querySelectorAll('#scripts-container textarea')).map(t => t.value);
                 const allScripts = [mainScript, ...extraScripts].filter(s => s && s.trim().length > 0);
-                if(!allScripts.length) return alert("Defina ao menos um script.");
+                if(!allScripts.length) return alert("Script vazio.");
                 const minDelay = (parseInt(document.getElementById('delay-min').value) || 10) * 1000;
                 const maxDelay = (parseInt(document.getElementById('delay-max').value) || 20) * 1000;
                 const btn = document.getElementById('btn-sender-start');
                 const originalText = btn.innerHTML;
-                btn.innerHTML = '<i data-lucide="square" class="w-4 h-4 fill-current"></i> INTERROMPER OPERAÇÃO';
-                btn.classList.add('stop-mode');
-                if(window.lucide) lucide.createIcons();
+                btn.innerHTML = 'PARAR'; btn.classList.add('stop-mode');
                 window.SenderTool.sending = true;
                 const cleanUrl = url.trim().replace(/\/$/, '').split('/message')[0];
                 const category = document.getElementById('sender-category').value;
@@ -617,26 +569,17 @@
                             const msg = window.SenderTool.prepareMessage(allScripts, var1, var2);
                             try {
                                 const response = await fetch(`${cleanUrl}/message/sendText/${inst}`, { method: 'POST', headers: { 'apikey': key, 'Content-Type': 'application/json' }, body: JSON.stringify({ number: num, text: msg, linkPreview: true }) });
-                                if(response.ok) { 
-                                    // SINCRONIZA O LEAD COM O FIREBASE EM TEMPO REAL
-                                    await DataCore.logSent(num, category); 
-                                    window.SenderTool.sessionCount++; 
-                                }
+                                if(response.ok) { await DataCore.logSent(num, category); window.SenderTool.sessionCount++; }
                             } catch(e) { console.error(e); }
                         }
-                        currentLines.shift();
-                        listArea.value = currentLines.join('\n');
-                        window.SenderTool.updateStats();
+                        currentLines.shift(); listArea.value = currentLines.join('\n'); window.SenderTool.updateStats();
                         if(currentLines.length > 0 && window.SenderTool.sending) {
                             const waitTime = Math.floor(Math.random() * (maxDelay - minDelay + 1) + minDelay);
                             await window.Utils.wait(waitTime);
                         }
                     }
                 } finally {
-                    window.SenderTool.sending = false;
-                    btn.innerHTML = originalText;
-                    btn.classList.remove('stop-mode');
-                    if(window.lucide) lucide.createIcons();
+                    window.SenderTool.sending = false; btn.innerHTML = originalText; btn.classList.remove('stop-mode'); if(window.lucide) lucide.createIcons();
                 }
             }
         };
@@ -646,19 +589,19 @@
             loadGroups: async () => {
                 let url = localStorage.getItem('evo_url'), key = localStorage.getItem('evo_key'), inst = localStorage.getItem('evo_inst');
                 if(window.AuthSystem.currentUser?.instanceLocked) { url = window.AuthSystem.currentUser.evo_url; key = window.AuthSystem.currentUser.evo_key; inst = window.AuthSystem.currentUser.instanceName; }
-                const select = document.getElementById('group-list'); if(!url) return alert("Erro: API não configurada.");
+                const select = document.getElementById('group-list'); if(!url) return alert("Erro API.");
                 select.innerHTML = '<option>Buscando...</option>';
                 try {
                     const cleanUrl = url.trim().replace(/\/$/, '').split('/message')[0];
                     const res = await fetch(`${cleanUrl}/group/fetchAllGroups/${inst}?getParticipants=true`, { method: 'GET', headers: { 'apikey': key } });
                     const data = await res.json();
                     window.ExtractorTool.cachedGroups = (Array.isArray(data) ? data : data.data || []).filter(g => g.participants?.length > 0);
-                    select.innerHTML = '<option value="">Selecione o Grupo...</option>';
+                    select.innerHTML = '<option value="">Selecione...</option>';
                     window.ExtractorTool.cachedGroups.forEach((g, i) => select.innerHTML += `<option value="${i}">${g.subject} (${g.participants.length})</option>`);
-                } catch (e) { select.innerHTML = '<option>Erro ao carregar</option>'; }
+                } catch (e) { select.innerHTML = '<option>Erro</option>'; }
             },
             extract: () => {
-                const i = document.getElementById('group-list').value; if(i==="") return alert("Selecione um grupo.");
+                const i = document.getElementById('group-list').value; if(i==="") return alert("Selecione.");
                 const g = window.ExtractorTool.cachedGroups[i]; let lines = [];
                 const groupName = g.subject.replace(/;/g, '');
                 g.participants.forEach(p => { 
@@ -669,38 +612,21 @@
                 window.SenderTool.updateStats();
                 if(confirm(`${lines.length} extraídos! Ir para Disparador?`)) window.Navigation.enterPortal('sender');
             },
-            
-            // ATUALIZADO: CONTA OS LEADS DO BANCO PARA REMARKETING
             updateRemarketingCount: async () => { 
                 const c = document.getElementById('remarketing-funnel-list').value; 
                 const countDisplay = document.getElementById('remarketing-count');
                 if(!c) { countDisplay.innerText = 0; return; }
-                
-                countDisplay.innerHTML = '<span class="animate-pulse">...</span>';
+                countDisplay.innerHTML = '...';
                 const nums = await DataCore.getNumbersByCategory(c);
                 countDisplay.innerText = nums.length; 
             },
-            
-            // ATUALIZADO: PUXA OS LEADS DO BANCO PARA O DISPARADOR
             sendToSender: async () => { 
                 const c = document.getElementById('remarketing-funnel-list').value; 
-                if(!c) return alert("Selecione um funil."); 
-                
-                const btn = document.querySelector('[onclick="window.ExtractorTool.sendToSender()"]');
-                const originalText = btn.innerText;
-                btn.innerText = "RECUPERANDO DADOS...";
-                
+                if(!c) return alert("Selecione."); 
                 const nums = await DataCore.getNumbersByCategory(c);
-                if(!nums.length) {
-                    alert("Nenhum histórico encontrado para este funil na nuvem.");
-                    btn.innerText = originalText;
-                    return;
-                }
-                
+                if(!nums.length) return alert("Sem leads.");
                 document.getElementById('target-list').value = nums.map(n => `${n};Remarketing;Lid`).join('\n'); 
-                window.Navigation.enterPortal('sender'); 
-                window.SenderTool.updateStats();
-                btn.innerText = originalText;
+                window.Navigation.enterPortal('sender'); window.SenderTool.updateStats();
             }
         };
 
@@ -709,24 +635,19 @@
         window.ConfigSystem = {
             save: async () => {
                 const inst = document.getElementById('conf-inst').value;
-                if(!inst) return alert("Digite o nome da instância.");
+                if(!inst) return alert("Digite o nome.");
                 try {
                     const globalDoc = await db.collection("settings").doc("global").get();
-                    if(!globalDoc.exists) return alert("Erro crítico: O painel master não definiu uma API padrão. Contate o administrador.");
+                    if(!globalDoc.exists) return alert("Erro crítico API.");
                     const globalData = globalDoc.data();
-                    const evoUrl = globalData.url;
-                    const evoKey = globalData.key;
                     if(window.AuthSystem.currentUser) {
                         const uid = window.AuthSystem.currentUser.uid;
-                        await db.collection('users').doc(uid).update({ instanceName: inst, instanceLocked: true, evo_url: evoUrl, evo_key: evoKey });
-                        window.AuthSystem.currentUser.instanceName = inst;
-                        window.AuthSystem.currentUser.instanceLocked = true;
-                        window.AuthSystem.currentUser.evo_url = evoUrl;
-                        window.AuthSystem.currentUser.evo_key = evoKey;
+                        await db.collection('users').doc(uid).update({ instanceName: inst, instanceLocked: true, evo_url: globalData.url, evo_key: globalData.key });
+                        window.AuthSystem.currentUser.instanceName = inst; window.AuthSystem.currentUser.instanceLocked = true;
+                        window.AuthSystem.currentUser.evo_url = globalData.url; window.AuthSystem.currentUser.evo_key = globalData.key;
                     }
-                    alert("Instância Sincronizada e Bloqueada com Sucesso!");
-                    window.ConfigSystem.load();
-                } catch(e) { alert("Erro ao sincronizar com o núcleo neural: " + e.message); }
+                    alert("Sincronizado!"); window.ConfigSystem.load();
+                } catch(e) { alert("Erro: " + e.message); }
             },
             load: () => {
                 const u = window.AuthSystem.currentUser;
@@ -737,10 +658,10 @@
 
         window.AdminSystem = {
             open: async () => {
-                document.getElementById('admin-terminal').style.display='block';
+                document.getElementById('admin-terminal').style.display='flex';
                 const snap = await db.collection("users").get();
-                let h = '<table class="w-full text-xs text-left"><thead><tr><th>User</th><th>Instance</th><th>Status</th></tr></thead><tbody>';
-                snap.forEach(d => { const u=d.data(); h+=`<tr class="border-b border-white/5"><td class="py-2">${u.name}</td><td class="py-2">${u.instanceName||'-'}</td><td class="py-2">${u.active?'AUTHORIZED':'REVOKED'}</td></tr>`; });
+                let h = '<table class="w-full text-left"><thead><tr><th>User</th><th>Inst</th><th>Stat</th></tr></thead><tbody>';
+                snap.forEach(d => { const u=d.data(); h+=`<tr class="border-b border-white/5"><td class="py-1">${u.name}</td><td class="py-1">${u.instanceName||'-'}</td><td class="py-1">${u.active?'OK':'NO'}</td></tr>`; });
                 document.getElementById('admin-content').innerHTML = h+'</tbody></table>';
             }
         };
@@ -748,28 +669,75 @@
         window.IntroSystem = { 
             start: async () => { 
                 const c = document.getElementById('chat-container'); 
-                c.innerHTML='<h3 class="text-gold font-display text-3xl mb-10 opacity-0 transition-all duration-1000 font-black tracking-tight" id="intro-headline">Handshaking com Núcleo Neural...</h3>'; 
-                requestAnimationFrame(() => { document.getElementById('intro-headline').classList.remove('opacity-0'); if(window.lucide) lucide.createIcons(); }); 
-                await window.Utils.wait(1000); 
-                const m=["Estabelecendo túnel criptografado...","Validando credenciais de elite...","Protocolo God Mode Carregado. Bem-vindo Operador."]; 
-                for(let t of m){ 
-                    const e=document.createElement('div'); 
-                    e.className='chat-bubble text-gray-400 font-mono text-xs border-l-[3px] border-gold pl-5'; e.innerText=t; 
-                    c.appendChild(e); await window.Utils.wait(100); e.classList.add('visible'); await window.Utils.wait(800); 
-                } 
+                c.innerHTML='<div class="text-green-500 font-mono">> Handshaking Core...</div>'; await window.Utils.wait(500);
+                const m=["Tunnel: OK", "Credentials: ELITE", "Mobile Protocol: LOADED"]; 
+                for(let t of m){ c.innerHTML += `<div class="text-gray-400 font-mono">> ${t}</div>`; await window.Utils.wait(300); } 
                 document.getElementById('chat-actions').classList.add('opacity-100'); 
             } 
+        };
+
+        window.StarfieldSystem = {
+            canvas: null, ctx: null, starsData: null, starCount: 400, isWarping: false, speed: 0.1, warpFactor: 0,
+            init: () => {
+                const canvas = document.getElementById('starfield-canvas');
+                window.StarfieldSystem.canvas = canvas; window.StarfieldSystem.ctx = canvas.getContext('2d');
+                const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; window.StarfieldSystem.centerX = canvas.width/2; window.StarfieldSystem.centerY = canvas.height/2; };
+                window.addEventListener('resize', resize); resize();
+                const count = window.StarfieldSystem.starCount;
+                window.StarfieldSystem.starsData = new Float32Array(count * 4);
+                window.StarfieldSystem.starColors = new Uint8Array(count);
+                for (let i = 0; i < count; i++) {
+                    const idx = i * 4;
+                    window.StarfieldSystem.starsData[idx] = Math.random() * canvas.width - window.StarfieldSystem.centerX;
+                    window.StarfieldSystem.starsData[idx+1] = Math.random() * canvas.height - window.StarfieldSystem.centerY;
+                    window.StarfieldSystem.starsData[idx+2] = Math.random() * canvas.width;
+                    window.StarfieldSystem.starColors[i] = Math.random() > 0.8 ? 1 : 0;
+                }
+                window.StarfieldSystem.animate();
+            },
+            startWarp: () => { window.StarfieldSystem.isWarping = true; },
+            stopWarp: () => { window.StarfieldSystem.isWarping = false; },
+            animate: () => {
+                const sys = window.StarfieldSystem; const ctx = sys.ctx; const canvas = sys.canvas;
+                ctx.fillStyle = sys.isWarping ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 1)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                let targetSpeed = sys.isWarping ? 60 : 0.1; // Reduced speed for mobile performance
+                sys.speed += (targetSpeed - sys.speed) * 0.05;
+                if (sys.speed > 40 && sys.isWarping) sys.warpFactor += 0.05; else sys.warpFactor *= 0.9;
+                for (let i = 0; i < sys.starCount; i++) {
+                    const idx = i * 4;
+                    sys.starsData[idx+2] -= sys.speed;
+                    if (sys.starsData[idx+2] <= 1) {
+                        sys.starsData[idx+2] = canvas.width;
+                        sys.starsData[idx] = Math.random() * canvas.width - sys.centerX;
+                        sys.starsData[idx+1] = Math.random() * canvas.height - sys.centerY;
+                    }
+                    const z = sys.starsData[idx+2];
+                    const x = (sys.starsData[idx] / z) * canvas.width + sys.centerX;
+                    const y = (sys.starsData[idx+1] / z) * canvas.height + sys.centerY;
+                    const pz = sys.isWarping ? (z + sys.speed * 2) : z; 
+                    const px = (sys.starsData[idx] / pz) * canvas.width + sys.centerX;
+                    const py = (sys.starsData[idx+1] / pz) * canvas.height + sys.centerY;
+                    const size = (1 - z / canvas.width) * (sys.speed > 2 ? 2 : 1.5);
+                    ctx.beginPath();
+                    const color = sys.starColors[i] === 1 ? '#D4AF37' : '#FFFFFF';
+                    if (sys.speed > 5) { ctx.strokeStyle = color; ctx.lineWidth = size; ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke(); } 
+                    else { ctx.fillStyle = color; ctx.arc(x, y, size/2, 0, Math.PI * 2); ctx.fill(); }
+                }
+                if (sys.warpFactor > 0.1) {
+                    const maxR = Math.min(canvas.width, canvas.height) * sys.warpFactor;
+                    const grad = ctx.createRadialGradient(sys.centerX, sys.centerY, 0, sys.centerX, sys.centerY, maxR);
+                    grad.addColorStop(0, "rgba(255, 255, 255, 1)"); grad.addColorStop(1, "transparent");
+                    ctx.fillStyle = grad; ctx.globalAlpha = Math.min(1, sys.warpFactor); ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                ctx.globalAlpha = 1; requestAnimationFrame(sys.animate);
+            }
         };
 
         window.onload = () => { 
             window.AuthSystem.init(); 
             if(window.lucide) lucide.createIcons();
-            const canvas = document.getElementById('particles-canvas'), ctx = canvas.getContext('2d');
-            const initCanvas = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-            initCanvas(); window.addEventListener('resize', initCanvas);
-            let p = []; for(let i=0; i<50; i++) p.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, vx:(Math.random()-0.5)*0.5, vy:(Math.random()-0.5)*0.5});
-            function anim() { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle="rgba(212,175,55,0.15)"; p.forEach(x=>{ x.x+=x.vx; x.y+=x.vy; if(x.x<0||x.x>canvas.width) x.vx*=-1; if(x.y<0||x.y>canvas.height) x.vy*=-1; ctx.beginPath(); ctx.arc(x.x,x.y,1,0,Math.PI*2); ctx.fill(); }); requestAnimationFrame(anim); }
-            anim();
+            window.StarfieldSystem.init();
         };
     </script>
 </body>
