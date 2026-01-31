@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#010103">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Leads Hunter | Mobile Stealth v11.1</title>
+    <title>Leads Hunter | Mobile Stealth v11.2</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -14,6 +14,7 @@
     <!-- FIREBASE COMPAT -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <style>
         :root { 
@@ -162,7 +163,7 @@
             <div class="text-center relative px-6">
                 <div class="absolute inset-0 bg-yellow-500/20 blur-[80px] rounded-full animate-pulse"></div>
                 <h1 class="font-display text-5xl md:text-7xl text-metallic tracking-tight font-black relative z-10 leading-none">LEADS<br>HUNTER</h1>
-                <p class="font-code text-[10px] text-gray-400 mt-6 tracking-[0.5em] uppercase opacity-70">Mobile Core v11.1</p>
+                <p class="font-code text-[10px] text-gray-400 mt-6 tracking-[0.5em] uppercase opacity-70">Mobile Core v11.2</p>
                 <div class="loader-bar-container mx-auto"><div id="boot-bar" class="loader-bar"></div></div>
                 <div id="boot-status" class="font-code text-[9px] text-[#D4AF37] mt-4 uppercase tracking-widest">Descriptografando Núcleo...</div>
             </div>
@@ -278,10 +279,15 @@
             <div onclick="window.Navigation.exitPortal()" class="nav-back"><i data-lucide="arrow-left" class="w-4 h-4 text-gold"></i> VOLTAR</div>
             <div class="pt-20 pb-10 px-4 min-h-full">
                 
+                <!-- CONFIG (MODIFICADO: CAMPO N8N ADICIONADO) -->
                 <div id="tab-config" class="tool-tab w-full max-w-md mx-auto">
                     <div class="glass-panel p-6 border-t-4 border-t-blue-500">
                         <h2 class="text-2xl font-black text-white mb-6 flex items-center gap-3"><i data-lucide="server" class="text-blue-500 w-6 h-6"></i> Configuração</h2>
                         <div class="space-y-6">
+                            <div>
+                                <label class="text-[10px] uppercase text-blue-400 font-bold mb-2 block tracking-widest">Webhook N8N (IA)</label>
+                                <input type="text" id="conf-n8n" class="god-input w-full font-mono text-sm border-blue-500/30" placeholder="https://seu-n8n...">
+                            </div>
                             <div>
                                 <label class="text-[10px] uppercase text-blue-400 font-bold mb-2 block tracking-widest">Nome da Instância</label>
                                 <div class="flex items-center gap-3">
@@ -295,20 +301,24 @@
                     </div>
                 </div>
 
+                <!-- HUNTER (MODIFICADO: LINKS DIRETOS) -->
                 <div id="tab-spider" class="tool-tab w-full max-w-md mx-auto">
                     <div class="glass-panel p-6 border-t-4 border-t-yellow-500 flex flex-col h-[70vh]">
-                        <h2 class="text-2xl font-black text-white mb-6 flex items-center gap-3"><i data-lucide="globe" class="text-yellow-500 w-6 h-6"></i> Hunter</h2>
+                        <h2 class="text-2xl font-black text-white mb-6 flex items-center gap-3"><i data-lucide="globe" class="text-yellow-500 w-6 h-6"></i> Hunter Search</h2>
                         <div class="flex gap-2 mb-6">
                             <input type="text" id="searchTerm" placeholder="Nicho..." class="god-input flex-1 font-bold">
                             <button onclick="window.SpiderTool.search()" class="btn-action !w-auto px-6"><i data-lucide="search" class="w-5 h-5"></i></button>
                         </div>
-                        <div id="spider-results" class="flex-1 bg-black/40 rounded-xl p-6 border border-white/5 flex flex-col items-center justify-center gap-4 text-center">
-                            <i data-lucide="radar" class="w-12 h-12 text-gray-700 animate-pulse"></i>
-                            <p class="text-gray-500 font-mono text-[10px] uppercase tracking-widest">Aguardando...</p>
+                        <div id="spider-results" class="flex-1 rounded-xl p-4 border border-white/5 flex flex-col items-center justify-start gap-4 overflow-y-auto custom-scroll">
+                            <div id="spider-placeholder" class="text-center opacity-50 mt-10">
+                                <i data-lucide="link" class="w-12 h-12 mx-auto mb-2 text-gray-700"></i>
+                                <p class="text-gray-500 font-mono text-[10px] uppercase tracking-widest">Busca Direta...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- EXTRACTOR -->
                 <div id="tab-extractor" class="tool-tab w-full max-w-md mx-auto space-y-6">
                     <div class="glass-panel p-6 border-l-4 border-l-purple-500">
                         <h2 class="text-2xl font-black text-white mb-6"><i data-lucide="database" class="w-6 h-6 text-purple-500 inline mr-2"></i> Extração</h2>
@@ -329,11 +339,15 @@
                     </div>
                 </div>
 
+                <!-- SENDER (MODIFICADO: IA BUTTON) -->
                 <div id="tab-sender" class="tool-tab w-full max-w-md mx-auto space-y-6">
                     <div class="glass-panel p-6 border-l-4 border-l-green-600">
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-xl font-black text-white flex items-center gap-2"><i data-lucide="message-square" class="w-5 h-5 text-green-500"></i> Scripts</h2>
-                            <button onclick="window.SenderTool.addScript()" class="text-[10px] bg-green-500/10 text-green-400 px-3 py-2 rounded border border-green-500/30 font-bold uppercase">+ Novo</button>
+                            <div class="flex gap-2">
+                                <button onclick="window.AIAgent.optimize()" class="text-[9px] bg-blue-500/20 text-blue-400 px-3 py-2 rounded border border-blue-500/30 font-bold uppercase"><i data-lucide="sparkles" class="w-3 h-3 inline"></i> IA</button>
+                                <button onclick="window.SenderTool.addScript()" class="text-[9px] bg-green-500/10 text-green-400 px-3 py-2 rounded border border-green-500/30 font-bold uppercase">+ Novo</button>
+                            </div>
                         </div>
                         <div id="scripts-container" class="space-y-4 max-h-48 overflow-y-auto custom-scroll">
                             <div class="script-block relative"><textarea id="script-area" class="god-input w-full h-32 text-xs resize-none" placeholder="Olá {nome}..."></textarea></div>
@@ -357,7 +371,7 @@
                             </div>
                             <select id="sender-category" onchange="window.SenderTool.updateStats()" class="god-input w-full text-xs font-bold bg-[#0a0a0a] mb-4"></select>
                             <label class="text-[10px] text-gray-400 uppercase font-black mb-2 block">Lista de Alvos</label>
-                            <textarea id="target-list" oninput="window.SenderTool.updateStats()" class="god-input w-full h-32 text-[10px] font-mono resize-none mb-4" placeholder="551199..."></textarea>
+                            <textarea id="target-list" oninput="window.SenderTool.updateStats()" class="flex-1 god-input w-full p-5 rounded-xl text-[10px] font-mono resize-none mb-4" placeholder="551199..."></textarea>
                         </div>
                         <div class="flex gap-3 items-end">
                             <div class="flex flex-col gap-1 w-1/3">
@@ -418,23 +432,21 @@
             }
         };
 
-        // --- AUTH & SYSTEM WITH OBFUSCATED CONFIG ---
-        // Configuração camuflada em Base64 para evitar scanners de texto simples
+        // --- AUTH & SYSTEM ---
         const _0xcd2 = "eyJhcGlLZXkiOiJBSXphU3lDN21jTHJZZ0FQX0I1Q0RvOGZsdk9HazROMzhjN0dwSEUiLCJhdXRoRG9tYWluIjoibGVhZHMtaHVudGVyLTIuZmlyZWJhc2VhcHAuY29tIiwicHJvamVjdElkIjoibGVhZHMtaHVudGVyLTIiLCJzdG9yYWdlQnVja2V0IjoibGVhZHMtaHVudGVyLTIuZmlyZWJhc2VzdG9yYWdlLmFwcCIsIm1lc3NhZ2luZ1NlbmRlcklkIjoiNTQ3MTA1Mzc2NzYyIiwiYXBwSWQiOiIxOjU0NzEwNTM3Njc2Mjp3ZWI6MWEyNWMwMWZiMDQzMmQyNDEyZmM0MyJ9";
         
-        let db; // Database instance global
+        let db; 
 
         window.Utils = { 
             wait: (ms) => new Promise(r => setTimeout(r, ms)), 
             generateId: () => Math.random().toString(36).substr(2, 9),
             getGreeting: () => { const h = new Date().getHours(); return h < 12 ? "bom dia" : h < 18 ? "boa tarde" : "boa noite"; },
-            decodeConfig: () => JSON.parse(atob(_0xcd2)) // Decodificador em tempo real
+            decodeConfig: () => JSON.parse(atob(_0xcd2)) 
         };
 
         window.AuthSystem = {
             currentUser: null,
             init: () => {
-                // Inicialização Stealth do Firebase
                 const cfg = window.Utils.decodeConfig();
                 firebase.initializeApp(cfg);
                 db = firebase.firestore();
@@ -473,21 +485,27 @@
             promptAdmin: () => { if(prompt("ACCESS:")==='adminsamuel') window.AdminSystem.open(); }
         };
 
-        // --- NAVIGATION ENGINE 3.0 ---
         window.Navigation = {
             isNavigating: false, 
             switchScreen: (id) => { 
                 const current = document.querySelector('.screen.active');
                 const target = document.getElementById(id);
+                
                 if (current) {
-                    current.classList.remove('active'); current.classList.remove('enter-depth'); current.classList.add('exit-depth');
+                    current.classList.remove('active');
+                    current.classList.remove('enter-depth');
+                    current.classList.add('exit-depth');
                     setTimeout(() => current.classList.remove('exit-depth'), 600);
                 }
-                target.classList.add('active'); target.classList.add('enter-depth');
+
+                target.classList.add('active'); 
+                target.classList.add('enter-depth');
+                
                 if(window.lucide) lucide.createIcons();
             },
             enterPortal: (tool) => { 
-                if (window.Navigation.isNavigating) return;
+                if (window.Navigation.isNavigating) return; 
+                
                 window.Navigation.switchScreen('tool-container'); 
                 document.querySelectorAll('.tool-tab').forEach(t=>t.classList.remove('active')); 
                 document.getElementById('tab-'+tool).classList.add('active'); 
@@ -511,7 +529,75 @@
             }
         };
 
-        // --- DISPARADOR ---
+        // --- NOVO: HUNTER SEARCH (LINKS DIRETOS) ---
+        window.SpiderTool = {
+            search: () => {
+                const term = document.getElementById('searchTerm').value;
+                if(!term) return alert("Digite um termo.");
+
+                const cleanTerm = term.trim().replace(/\s+/g, '+');
+                const area = document.getElementById('spider-results');
+                
+                document.getElementById('spider-placeholder').style.display = 'none';
+
+                area.innerHTML = `
+                    <div class="grid grid-cols-1 gap-4 w-full mt-4">
+                        <div class="p-6 border border-white/10 rounded-xl bg-white/5 active:border-yellow-500/50 active:bg-white/10 transition-all cursor-pointer" onclick="window.open('https://gruposwhats.app/search?q=${cleanTerm}', '_blank')">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-base font-black text-white">GruposWhats.app</h3>
+                                <i data-lucide="external-link" class="w-4 h-4 text-gray-500"></i>
+                            </div>
+                            <p class="text-[10px] text-gray-400 font-mono">Abrir pesquisa direta.</p>
+                        </div>
+
+                        <div class="p-6 border border-green-500/20 rounded-xl bg-green-500/5 active:bg-green-500/10 active:border-green-500/40 transition-all cursor-pointer" onclick="window.open('https://linkdegrupo.com.br/?s=${cleanTerm}', '_blank')">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-base font-black text-green-400">LinkDeGrupo</h3>
+                                <i data-lucide="external-link" class="w-4 h-4 text-green-700"></i>
+                            </div>
+                            <p class="text-[10px] text-gray-400 font-mono">Recomendado.</p>
+                        </div>
+                    </div>
+                `;
+                
+                if(window.lucide) lucide.createIcons();
+            }
+        };
+
+        // --- NOVO: AI AGENT (INTEGRAÇÃO N8N) ---
+        window.AIAgent = {
+            optimize: async () => {
+                const script = document.getElementById('script-area').value;
+                const n8n = localStorage.getItem('lh_n8n'); 
+                
+                if(!script) return alert("Digite um script primeiro.");
+                if(!n8n) return alert("Configure o Webhook n8n.");
+
+                const btn = document.querySelector('button[onclick="window.AIAgent.optimize()"]');
+                const originalHTML = btn.innerHTML;
+                
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>`;
+                btn.disabled = true;
+                if(window.lucide) lucide.createIcons();
+
+                try {
+                    const res = await fetch(n8n, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ action: 'ai_script', prompt: script })
+                    });
+                    const data = await res.json();
+                    if(data.text) { document.getElementById('script-area').value = data.text; }
+                } catch(e) { 
+                    alert("Erro AI: " + e.message); 
+                } finally { 
+                    btn.innerHTML = originalHTML; 
+                    btn.disabled = false;
+                    if(window.lucide) lucide.createIcons();
+                }
+            }
+        };
+
         window.SenderTool = {
             sessionCount: 0, sending: false,
             addScript: () => { 
@@ -531,6 +617,10 @@
                 let finalMsg = variations[Math.floor(Math.random() * variations.length)].trim();
                 const greeting = window.Utils.getGreeting();
                 return finalMsg.replace(/{nome}/gi, var2).replace(/{saudacao}/gi, greeting).replace(/{var1}/gi, var1).replace(/{var2}/gi, var2);
+            },
+            promptNewCategory: () => {
+                const n = prompt("Nome do novo funil:");
+                if(n) DataCore.addCategory(n);
             },
             start: async () => {
                 if(window.SenderTool.sending) { window.SenderTool.sending = false; return; }
@@ -630,12 +720,17 @@
             }
         };
 
-        window.SpiderTool = { search: async () => { const t = document.getElementById('searchTerm').value; if(!t) return alert("Digite um nicho."); window.open(`https://gruposwhats.app/search?q=${t.trim().replace(/\s+/g, '+')}`, '_blank'); } };
-        
         window.ConfigSystem = {
             save: async () => {
                 const inst = document.getElementById('conf-inst').value;
+                const n8n = document.getElementById('conf-n8n').value; // CAMPO NOVO
+                
                 if(!inst) return alert("Digite o nome.");
+                
+                // SALVAR LOCALMENTE
+                localStorage.setItem('lh_inst', inst);
+                localStorage.setItem('lh_n8n', n8n);
+                
                 try {
                     const globalDoc = await db.collection("settings").doc("global").get();
                     if(!globalDoc.exists) return alert("Erro crítico API.");
@@ -651,6 +746,9 @@
             },
             load: () => {
                 const u = window.AuthSystem.currentUser;
+                // CARREGA N8N
+                document.getElementById('conf-n8n').value = localStorage.getItem('lh_n8n') || '';
+                
                 document.getElementById('conf-inst').value = (u?.instanceLocked ? u.instanceName : localStorage.getItem('evo_inst')) || '';
                 if(u?.instanceLocked) { document.getElementById('conf-inst').disabled = true; document.getElementById('lock-icon').classList.remove('hidden'); }
             }
